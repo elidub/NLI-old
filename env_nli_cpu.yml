@@ -1,13 +1,12 @@
-name: nli
+name: nli_cpu
 channels:
   - pytorch
-  - nvidia
   - conda-forge
   - defaults
 dependencies:
   - python=3.10.6
   - pip=22.2.2
-  - pytorch-cuda=11.7
+  - cpuonly=2.0
   - pytorch=1.13.0
   - torchvision=0.14.0
   - torchaudio=0.13.0
