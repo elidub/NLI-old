@@ -1,44 +1,46 @@
-from datasets import load_from_disk
-import numpy as np
-from tqdm import tqdm
-import pickle
 import torch
+from datasets import load_from_disk
 
-def get_vocab(dataset):
-    vocab = set()
-    for example in dataset:
-        vocab.update(example['premise'])
-        vocab.update(example['hypothesis'])
-    return vocab
+class DataSetPadding():
+    def __init__(self, dataset, wordvec, max_length=100):
+        self.dataset = dataset
+        self.wordvec = wordvec
+        self.max_length = max_length
 
-def get_glove(vocab, glove_path):
+    def __len__(self):
+        assert self.dataset.num_rows == len(self.dataset)
+        return len(self.dataset)
 
-    with open(glove_path, "r", encoding="utf8") as f:
-        lines = f.readlines()
+    def get_embedding(self, sent):
+        return torch.stack([self.wordvec[word] for word in sent])
+    
+    def __getitem__(self, idx):
+        example = self.dataset[idx]
+        s1, s2, y = example['premise'], example['hypothesis'], example['label']
 
-    wordvec = {}
-    for line in tqdm(lines):
-        word, vec = line.split(' ', 1)
-        if word in vocab:
-            wordvec[word] = torch.tensor(list(map(float, vec.split())))
+        s1 = [word if word in self.wordvec else '<unk>' for word in s1]
+        s2 = [word if word in self.wordvec else '<unk>' for word in s2]
 
-    wordvec['<unk>'] = torch.normal(mean=0, std=1, size=(300,))
-    # wordvec['<pad>'] = torch.normal(mean=0, std=1, size=(300,))
-    wordvec['<pad>'] = torch.zeros(300)
+        len1, len2 = len(s1), len(s2)
 
-    return wordvec
+        if (len1 > self.max_length) or (len2 > self.max_length):
+            raise ValueError('Sentence length exceeds max length')
 
+        s1.extend(['<pad>'] * (self.max_length - len1))
+        s2.extend(['<pad>'] * (self.max_length - len2))
+
+        e1 = self.get_embedding(s1)
+        e2 = self.get_embedding(s2)
+
+        return s1, s2, y, e1, e2, len1, len2
+    
 
 if __name__ == '__main__':
-
     dataset_snli = load_from_disk('data/snli')
 
-    print('Building vocab and word vectors...')
-    vocab = get_vocab(dataset_snli['train'])
-    wordvec = get_glove(vocab, glove_path = "data/glove.840B.300d.txt")
-
-    print(f'Vocab size: {len(vocab)}')
-    print(f'Word vector size: {len(wordvec)}')
-
-    with open('store/wordvec.pkl', 'wb') as f:
-        pickle.dump(wordvec, f)
+    for split in dataset_snli:
+        l1, l2 = 0, 0
+        for example in dataset_snli[split]:
+            l1 = max(l1, len(example['premise']))
+            l2 = max(l2, len(example['hypothesis']))
+        print(f'{split}: {l1}, {l2}')
