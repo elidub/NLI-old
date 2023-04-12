@@ -2,3 +2,5 @@ data/glove.840B.300d.txt
 data/snli/
 SentEval/
 nli/__pycache__/
+lightning_logs/
+jobs/slurm_output/

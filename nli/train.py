@@ -36,17 +36,6 @@ def parse_option():
 
 def main(args):
 
-    # with open('store/wordvec.pkl', 'rb') as f:
-    #     wordvec = pickle.load(f)
-    # dataset_snli = load_from_disk('data/snli')
-
-
-    # dataloader = {}
-    # for split, shuffle in zip(['train', 'validation'], [True, False]):
-    #     dataset = DataSetPadding(dataset_snli[split], wordvec)
-    #     # if split in ['train', 'validation']:
-    #     #     dataset = utils.data.Subset(dataset, range(1000))
-    #     dataloader[split] = utils.data.DataLoader(dataset, batch_size=64, shuffle=shuffle, num_workers=args.num_workers)
 
     hidden_dim = 2048
 
