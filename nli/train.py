@@ -1,11 +1,8 @@
-from datasets import load_from_disk
-import pickle
 import torch
-from torch import utils
 import pytorch_lightning as pl
 import argparse
 
-from data import DataSetPadding
+from data import NLIDataModule
 from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet
 from learner import Learner
 
@@ -15,11 +12,10 @@ from learner import Learner
 def parse_option():
     parser = argparse.ArgumentParser(description="Training NLI models")
 
-    parser.add_argument('--model', type=str, help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
+    parser.add_argument('--model', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
 
     parser.add_argument('--epochs', type=int, default=10, help='Max number of training epochs')
-
-    parser.add_argument('--num_workers', type=int, default=1, help='Number of workers for dataloader')
+    parser.add_argument('--num_workers', type=int, default=3, help='Number of workers for dataloader')
 
     # parser.add_argument('--batch_size', type=int, default=64, help='batch size')
     # parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
@@ -37,19 +33,20 @@ def parse_option():
     return args
 
 
+
 def main(args):
 
-    with open('store/wordvec.pkl', 'rb') as f:
-        wordvec = pickle.load(f)
-    dataset_snli = load_from_disk('data/snli')
+    # with open('store/wordvec.pkl', 'rb') as f:
+    #     wordvec = pickle.load(f)
+    # dataset_snli = load_from_disk('data/snli')
 
 
-    dataloader = {}
-    for split, shuffle in zip(['train', 'validation'], [True, False]):
-        dataset = DataSetPadding(dataset_snli[split], wordvec)
-        if split == 'train':
-            dataset = utils.data.Subset(dataset, range(1000))
-        dataloader[split] = utils.data.DataLoader(dataset, batch_size=64, shuffle=shuffle, num_workers=args.num_workers)
+    # dataloader = {}
+    # for split, shuffle in zip(['train', 'validation'], [True, False]):
+    #     dataset = DataSetPadding(dataset_snli[split], wordvec)
+    #     # if split in ['train', 'validation']:
+    #     #     dataset = utils.data.Subset(dataset, range(1000))
+    #     dataloader[split] = utils.data.DataLoader(dataset, batch_size=64, shuffle=shuffle, num_workers=args.num_workers)
 
     hidden_dim = 2048
 
@@ -72,9 +69,11 @@ def main(args):
     net = NLINet(encoder, classifier)
     model = Learner(net)
 
+    datamodule = NLIDataModule(batch_size=64, num_workers=args.num_workers)
+
     device = 'gpu' if torch.cuda.is_available() else 'cpu'
-    trainer = pl.Trainer(max_epochs=args.epochs, accelerator=device, enable_checkpointing=True)
-    trainer.fit(model, train_dataloaders = dataloader['train'], val_dataloaders = dataloader['validation'])
+    trainer = pl.Trainer(max_epochs=args.epochs, log_every_n_steps=1, accelerator=device)
+    trainer.fit(model, datamodule=datamodule)
 
 if __name__ == "__main__":
     args = parse_option()
