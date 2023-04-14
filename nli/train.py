@@ -13,6 +13,7 @@ def parse_option():
     parser = argparse.ArgumentParser(description="Training NLI models")
 
     parser.add_argument('--model', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
+    parser.add_argument('--ckpt_path', type=str, help='Path to save checkpoint')
 
     parser.add_argument('--epochs', type=int, default=10, help='Max number of training epochs')
     parser.add_argument('--num_workers', type=int, default=3, help='Number of workers for dataloader')
@@ -60,8 +61,13 @@ def main(args):
 
     datamodule = NLIDataModule(batch_size=64, num_workers=args.num_workers)
 
-    device = 'gpu' if torch.cuda.is_available() else 'cpu'
-    trainer = pl.Trainer(max_epochs=args.epochs, log_every_n_steps=1, accelerator=device)
+    trainer = pl.Trainer(
+        default_root_dir = args.ckpt_path,
+        max_epochs = args.epochs, 
+        log_every_n_steps = 1, 
+        accelerator = 'gpu' if torch.cuda.is_available() else 'cpu',
+        callbacks = [pl.callbacks.ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc")],
+    )
     trainer.fit(model, datamodule=datamodule)
 
 if __name__ == "__main__":

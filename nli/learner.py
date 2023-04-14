@@ -6,17 +6,21 @@ import pytorch_lightning as pl
 class Learner(pl.LightningModule):
     def __init__(self, net):
         super().__init__()
+        self.save_hyperparameters(ignore=['net'])
+
         self.net = net
         self.loss_fn = nn.CrossEntropyLoss()
-
         self.val_acc = None
 
+    def encode(self, s):
+        e = self.net.encode(s)
+        return e
 
     def step(self, batch, mode='train'):
         s1, s2, y, e1, e2, len1, len2 = batch
 
         # Forward
-        y_hat = self.net(e1, e2, len1, len2)
+        y_hat = self.net(s1, s2, len1, len2)
 
         # Loss
         loss = self.loss_fn(y_hat, y)

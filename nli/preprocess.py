@@ -68,6 +68,31 @@ def get_vocab(dataset):
         vocab.update(example['hypothesis'])
     return vocab
 
+def create_dictionary(sentences, threshold=0):
+    words = {}
+    for s in sentences:
+        for word in s:
+            words[word] = words.get(word, 0) + 1
+
+    if threshold > 0:
+        newwords = {}
+        for word in words:
+            if words[word] >= threshold:
+                newwords[word] = words[word]
+        words = newwords
+    words['<s>'] = 1e9 + 4
+    words['</s>'] = 1e9 + 3
+    words['<p>'] = 1e9 + 2
+
+    sorted_words = sorted(words.items(), key=lambda x: -x[1])  # inverse sort
+    id2word = []
+    word2id = {}
+    for i, (w, _) in enumerate(sorted_words):
+        id2word.append(w)
+        word2id[w] = i
+
+    return id2word, word2id
+
 def get_glove(vocab, glove_path):
 
     with open(glove_path, "r", encoding="utf8") as f:
@@ -87,13 +112,13 @@ def get_glove(vocab, glove_path):
 
 def create_wordvec():
     dataset_snli = load_from_disk('data/snli')
+    samples = dataset_snli['train']['premise'] + dataset_snli['train']['hypothesis']
 
     print('Building vocab and word vectors...')
-    vocab = get_vocab(dataset_snli['train'])
+    _, vocab = create_dictionary(samples)
     wordvec = get_glove(vocab, glove_path = "data/glove.840B.300d.txt")
 
-    print(f'Vocab size: {len(vocab)}')
-    print(f'Word vector size: {len(wordvec)}')
+    print(f'Word vector: {len(wordvec)} out of vocab with size {len(vocab)}')
 
     with open('store/wordvec.pkl', 'wb') as f:
         pickle.dump(wordvec, f)
