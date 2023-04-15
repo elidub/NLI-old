@@ -150,15 +150,15 @@ class NLINet(nn.Module):
     #     print('indices device', indices.device)
     #     return indices, slen
     
-    def encode(self, sent, slen):
-        wordvec = self.embedding(sent)
+    def encode(self, sent_id, slen):
+        wordvec = self.embedding(sent_id)
         sentrep = self.encoder(wordvec, slen)
         return sentrep
 
     def forward(self, x):
-        s1, s2, len1, len2 = x
+        sid1, sid2, len1, len2 = x
 
-        u, v = self.encode(s1, len1), self.encode(s2, len2) # (batch_size, embedding_size)
+        u, v = self.encode(sid1, len1), self.encode(sid2, len2) # (batch_size, embedding_size)
         features = self.concat_sentreps(u, v) # (batch_size, 4 * embedding_size)
         y_hat = self.classifier(features) # (batch_size, 3)
 

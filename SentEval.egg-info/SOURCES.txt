@@ -1,0 +1,5 @@
+README.md
+SentEval.egg-info/PKG-INFO
+SentEval.egg-info/SOURCES.txt
+SentEval.egg-info/dependency_links.txt
+SentEval.egg-info/top_level.txt
