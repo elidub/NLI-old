@@ -44,15 +44,15 @@ class Vocabulary:
         # wordvec['<pad>'] = torch.normal(mean=0, std=1, size=(300,))
         wordvec['<pad>'] = torch.zeros(300)
 
-        i = 0
+        # i = 0
         with open(path_to_vec, "r", encoding="utf8") as f:
             for line in tqdm(f, desc = f'Creating word vectors from {path_to_vec}', total = 2196017):
                 word, vec = line.split(' ', 1)
                 if word in dataset_corpus:
                     wordvec[word] = torch.tensor(list(map(float, vec.split())))
-                i += 1
-                if i > 1000:
-                    break
+                # i += 1
+                # if i > 10000:
+                #     break
 
         assert list( wordvec.keys() )[:2] == ['<unk>', '<pad>']
 
@@ -122,18 +122,13 @@ class NLIDataModule(pl.LightningDataModule):
         self.vocab = vocab
 
     def setup(self, stage=None):
-        # print('Loading data...')
-        # # with open('store/wordvec.pkl', 'rb') as f:
-        # #     wordvec = pickle.load(f)
-        # print('Loading data... Done')
 
         dataset_snli = load_from_disk('data/snli')
 
-        self.dataset = {}
-        for split, shuffle in zip(['train', 'validation'], [True, False]):
-            self.dataset[split] = DataSetPadding(dataset_snli[split], self.vocab)
+        self.dataset = {DataSetPadding(dataset_snli[split], self.vocab) for split in dataset_snli}
 
-            if split in ['train', 'validation']: self.dataset[split] = utils.data.Subset(self.dataset[split], range(1000))
+        for split in ['train', 'validation']:
+             self.dataset[split] = utils.data.Subset(self.dataset[split], range(1000))
 
     def train_dataloader(self):
         return utils.data.DataLoader(self.dataset['train'], batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)

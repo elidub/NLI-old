@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import pickle
+from datasets import load_from_disk
 
 class AvgWordEmb(nn.Module):
     def __init__(self):
@@ -163,3 +165,6 @@ class NLINet(nn.Module):
         y_hat = self.classifier(features) # (batch_size, 3)
 
         return y_hat
+    
+
+

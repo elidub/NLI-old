@@ -67,7 +67,7 @@ class Learner(pl.LightningModule):
 
         # if val_acc is lower than previous epoch, reduce lr
         if self.val_acc is not None and val_acc < self.val_acc:
-            print('Reducing learning rate')
+            # print('Reducing learning rate')
             new_lr = new_lr / 5
         self.val_acc = val_acc
 
@@ -75,7 +75,7 @@ class Learner(pl.LightningModule):
 
         self.trainer.optimizers[0].param_groups[0]['lr'] = new_lr
         
-        print(f'Epoch {self.current_epoch} old lr: {lr} new lr: {new_lr} val_acc: {val_acc}')
+        # print(f'Epoch {self.current_epoch} old lr: {lr} new lr: {new_lr} val_acc: {val_acc}')
 
         if lr < 1e-5:
             self.trainer.should_stop = True

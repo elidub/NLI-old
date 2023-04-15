@@ -8,8 +8,24 @@ import pickle
 import torch
 import nltk
 nltk.download('punkt')
+from data import Vocabulary
+import argparse
+import logging
 
 
+def parse_option():
+    parser = argparse.ArgumentParser(description="Training NLI models")
+
+    parser.add_argument('--download_snli', action='store_true', default = False, help='Download and pre-process the SNLI dataset')
+    parser.add_argument('--download_glove', action='store_true', default = False, help='Download the GloVe dataset')
+    parser.add_argument('--create_vocab', action='store_true', default = False, help='Create the vocabulary')
+    
+    parser.add_argument('--path_to_vocab', type=str, default='store/vocab.pkl', help='Path to vocab')
+    parser.add_argument('--path_to_vec', type=str, default='data/glove.840B.300d.txt', help='Path to GloVe dataset')
+
+    args = parser.parse_args()
+
+    return args
 
 
 ####### Download and pre-process the SNLI dataset #######
@@ -37,9 +53,6 @@ def download_snli():
     print('Done!')
 
 
-
-
-
 ####### Download the GloVe dataset #######
 
 def download_glove():
@@ -57,82 +70,29 @@ def download_glove():
 
     print("Done!")
 
+####### Main #######
 
-####### Create word vectors and vocab #######
+def main(args):
+    os.makedirs('data', exist_ok=True)
+    
+    if args.download_snli:
+        download_snli()
 
+    if args.download_glove:
+        download_glove()
+    
+    if args.create_vocab:
+        logging.info('Loading SNLI...')
+        dataset_snli = load_from_disk('data/snli')
 
-def get_vocab(dataset):
-    vocab = set()
-    for example in dataset:
-        vocab.update(example['premise'])
-        vocab.update(example['hypothesis'])
-    return vocab
+        samples = dataset_snli['train']['premise'] + dataset_snli['train']['hypothesis']
+        
+        vocab = Vocabulary(samples, path_to_vec = args.path_to_vec)
 
-def create_dictionary(sentences, threshold=0):
-    words = {}
-    for s in sentences:
-        for word in s:
-            words[word] = words.get(word, 0) + 1
-
-    if threshold > 0:
-        newwords = {}
-        for word in words:
-            if words[word] >= threshold:
-                newwords[word] = words[word]
-        words = newwords
-    words['<s>'] = 1e9 + 4
-    words['</s>'] = 1e9 + 3
-    words['<p>'] = 1e9 + 2
-
-    sorted_words = sorted(words.items(), key=lambda x: -x[1])  # inverse sort
-    id2word = []
-    word2id = {}
-    for i, (w, _) in enumerate(sorted_words):
-        id2word.append(w)
-        word2id[w] = i
-
-    return id2word, word2id
-
-def get_wordvec(vocab, glove_path):
-
-    with open(glove_path, "r", encoding="utf8") as f:
-        lines = f.readlines()
-
-    wordvec = {}
-    for line in tqdm(lines):
-        word, vec = line.split(' ', 1)
-        if word in vocab:
-            wordvec[word] = torch.tensor(list(map(float, vec.split())))
-
-    wordvec['<unk>'] = torch.normal(mean=0, std=1, size=(300,))
-    # wordvec['<pad>'] = torch.normal(mean=0, std=1, size=(300,))
-    wordvec['<pad>'] = torch.zeros(300)
-
-    return wordvec
-
-def create_wordvec():
-    dataset_snli = load_from_disk('data/snli')
-    samples = dataset_snli['train']['premise'] + dataset_snli['train']['hypothesis']
-
-    print('Building vocab and word vectors...')
-    _, vocab = create_dictionary(samples)
-    wordvec = get_wordvec(vocab, glove_path = "data/glove.840B.300d.txt")
-
-    print(f'Word vector: {len(wordvec)} out of vocab with size {len(vocab)}')
-
-    with open('store/wordvec.pkl', 'wb') as f:
-        pickle.dump(wordvec, f)
-
-
-
-
-
+        with open(args.path_to_vocab, 'wb') as f:
+            pickle.dump(vocab, f)
 
 if __name__ == '__main__':
-
-    # make sure the data directory exists
-    os.makedirs('data', exist_ok=True)
-
-    # download_snli()
-    # download_glove()
-    create_wordvec()
+    args = parse_option()
+    print(args)
+    main(args)
