@@ -2,9 +2,12 @@ import torch
 import pytorch_lightning as pl
 import argparse
 
-from data import NLIDataModule
+from data import NLIDataModule, Vocabulary
 from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet
 from learner import Learner
+
+import pickle
+from datasets import load_from_disk
 
 
 
@@ -13,6 +16,8 @@ def parse_option():
     parser = argparse.ArgumentParser(description="Training NLI models")
 
     parser.add_argument('--model', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
+    parser.add_argument('--load_vocab', action='store_true', default = False, help='Load word vectors and vocabulary')
+    
     parser.add_argument('--ckpt_path', type=str, help='Path to save checkpoint')
 
     parser.add_argument('--epochs', type=int, default=10, help='Max number of training epochs')
@@ -29,6 +34,9 @@ def parse_option():
     # parser.add_argument('--bidirectional', type=bool, default=False, help='bidirectional')
     # parser.add_argument('--device', type=str, default='gpu', help='device')
 
+    ## boolean parser arguments
+
+
     args = parser.parse_args()
 
     return args
@@ -36,6 +44,18 @@ def parse_option():
 
 
 def main(args):
+
+    if args.load_vocab:
+        print('Loading dataset and building vocabulary...')
+        vocab = pickle.load(open('store/vocab.pkl', 'rb'))
+
+    else:
+        dataset_snli = load_from_disk('data/snli')
+        samples = dataset_snli['train']['premise'] + dataset_snli['train']['hypothesis']
+        vocab = Vocabulary(samples, path_to_vec = "data/glove.840B.300d.txt")
+
+        with open('store/vocab.pkl', 'wb') as f:
+            pickle.dump(vocab, f)
 
 
     hidden_dim = 2048
@@ -56,10 +76,10 @@ def main(args):
         raise ValueError('Unknown model type')
 
 
-    net = NLINet(encoder, classifier)
+    net = NLINet(encoder, classifier, vocab)
     model = Learner(net)
 
-    datamodule = NLIDataModule(batch_size=64, num_workers=args.num_workers)
+    datamodule = NLIDataModule(vocab = vocab, batch_size=64, num_workers=args.num_workers)
 
     trainer = pl.Trainer(
         default_root_dir = args.ckpt_path,

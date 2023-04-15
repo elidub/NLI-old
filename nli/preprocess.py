@@ -93,7 +93,7 @@ def create_dictionary(sentences, threshold=0):
 
     return id2word, word2id
 
-def get_glove(vocab, glove_path):
+def get_wordvec(vocab, glove_path):
 
     with open(glove_path, "r", encoding="utf8") as f:
         lines = f.readlines()
@@ -116,7 +116,7 @@ def create_wordvec():
 
     print('Building vocab and word vectors...')
     _, vocab = create_dictionary(samples)
-    wordvec = get_glove(vocab, glove_path = "data/glove.840B.300d.txt")
+    wordvec = get_wordvec(vocab, glove_path = "data/glove.840B.300d.txt")
 
     print(f'Word vector: {len(wordvec)} out of vocab with size {len(vocab)}')
 

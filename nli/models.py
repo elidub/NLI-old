@@ -2,10 +2,8 @@ import torch
 import torch.nn as nn
 
 class AvgWordEmb(nn.Module):
-    def __init__(self, vocab_size, embedding_dim):
+    def __init__(self):
         super().__init__()
-
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
 
     def forward(self, embedding, length):
 
@@ -26,20 +24,18 @@ class UniLSTM(torch.nn.Module):
     Unidirectional LSTM applied on the word embeddings, where the last hidden state is considered 
     as sentence representation (see Section 3.2.1 of the paper)
     """
-    def __init__(self, hidden_dim, vocab_size, embed_size = 300):
+    def __init__(self, hidden_dim, embed_size = 300):
         super(UniLSTM, self).__init__()
         
         self.lstm = torch.nn.LSTM(input_size = embed_size, hidden_size = hidden_dim, 
                                   num_layers = 1, dropout=0, bidirectional=False, 
                                   batch_first=True)
 
-    def forward(self, sentence_indices, length):
+    def forward(self, embedding, length):
         """
         embedding: (batch_size, max_length = 100, embedding_size (GloVe) = 300)
         length: (batch_size)
         """
-
-        embedding = self.embedding(sentence_indices)
 
         x = torch.nn.utils.rnn.pack_padded_sequence(embedding, length.cpu(), batch_first=True, enforce_sorted=False)
         lstm_out, (hn, cn) = self.lstm(x) # hn: (num_layers * num_directions = 1, batch = 64, hidden_dim = 2048)
@@ -113,27 +109,56 @@ class MLP(nn.Module):
     
 
 class NLINet(nn.Module):
-    def __init__(self, encoder, classifier, vocab, vocab_size, embed_size):
+    def __init__(self, encoder, classifier, vocab):
         super().__init__()
         self.encoder = encoder
         self.classifier = classifier
+
         self.vocab = vocab
+
+        wordvec = torch.stack(list(vocab.wordvec.values()))
+        vocab_size, embed_size = wordvec.shape
+
+
         self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=1)
+
+        with torch.no_grad():
+            self.embedding.weight.copy_(torch.stack(list(vocab.wordvec.values())))
+            self.embedding.weight.requires_grad = False
 
     def concat_sentreps(self, sentrep1, sentrep2):
         return torch.cat([sentrep1, sentrep2, torch.abs(sentrep1 - sentrep2), sentrep1 * sentrep2], dim=1)
     
-    def get_ids(self, sentence):
-        indices = [self.vocab.w2i.get(word, 0) for word in sentence]
-        indices = torch.tensor(indices, dtype=torch.long)
-        indices = indices.unsqueeze(0)
-        return indices
+    # def get_ids(self, sentence):
+    #     unk_id = list(self.vocab.wordvec.keys()).index('<unk>')
+    #     pad_id = list(self.vocab.wordvec.keys()).index('<pad>')
+    #     slen = len(sentence)
 
-    def forward(self, s1, s2, len1, len2):
+    #     print('slen', slen)
 
-        sid1, sid2 = self.get_ids(s1), self.get_ids(s2)
-        
-        u, v = self.encoder(sid1, len1), self.encoder(sid2, len2) # (batch_size, embedding_size)
+    #     # put slen as torch integer
+
+
+    #     assert slen <= self.maxlen, f"Sentence length exceeds the maximum length of {self.maxlen}"
+    #     assert slen > 0, "Sentence length is 0"
+    #     assert unk_id == 0, "Unknown token id is not 0"
+    #     assert pad_id == 1, "Padding token id is not 1"
+
+    #     indices = [self.vocab.word2id.get(word, unk_id) for word in sentence] + [pad_id] * (self.maxlen - slen)
+    #     indices = torch.tensor(indices, dtype=torch.long)
+    #     # indices = indices.unsqueeze(0)
+    #     print('indices device', indices.device)
+    #     return indices, slen
+    
+    def encode(self, sent, slen):
+        wordvec = self.embedding(sent)
+        sentrep = self.encoder(wordvec, slen)
+        return sentrep
+
+    def forward(self, x):
+        s1, s2, len1, len2 = x
+
+        u, v = self.encode(s1, len1), self.encode(s2, len2) # (batch_size, embedding_size)
         features = self.concat_sentreps(u, v) # (batch_size, 4 * embedding_size)
         y_hat = self.classifier(features) # (batch_size, 3)
 
