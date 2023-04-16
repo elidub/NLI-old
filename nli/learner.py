@@ -51,7 +51,6 @@ class Learner(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         loss, y_hat = self.step(batch, 'test')
 
-
     def configure_optimizers(self):
         optimizer = optim.SGD(self.parameters(), lr=0.1, weight_decay=0)
         # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode = 'max', factor=0.2, patience=1, verbose=True)

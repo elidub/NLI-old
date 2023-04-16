@@ -103,10 +103,21 @@ class NLIResults:
     def get_nli_accs(self):
         return {'val': self.validate()*100., 'test': self.test()*100., }
     
-    def get_nli_preds(self):
+    def get_example_preds(self):
         y_hat, y = self.trainer.predict(self.model, datamodule=self.datamodule)[0]
         y_pred = torch.nn.functional.softmax(y_hat, dim=1)
-        return y_pred
+        return y_pred, y
+    
+    def get_test_preds(self):
+
+        preds = self.trainer.predict(self.model, dataloaders=self.datamodule.test_dataloader()) 
+
+        # concatenate all the predictions and labels
+        y_hat = torch.cat([pred[0] for pred in preds], dim=0)
+        y     = torch.cat([pred[1] for pred in preds], dim=0)
+        
+        y_pred = torch.nn.functional.softmax(y_hat, dim=1)
+        return y_pred, y
 
 
 def main(args):
@@ -114,6 +125,11 @@ def main(args):
     args.ckpt_path = args.ckpt_path if args.ckpt_path is not None else args.model_type
 
     _, version_path = find_checkpoint(args.ckpt_path, args.version)
+
+    # if path not exist, create
+    version_store_path = os.path.join(version_path, 'store/')
+    if not os.path.exists(version_store_path):
+        os.makedirs(version_store_path)
     
     if args.tranfer_results:
         transfer_results = TransferResults(args, {'MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC', 'MRPC', 'SICKEntailment'})
@@ -126,16 +142,21 @@ def main(args):
 
         nli_accs = nli_results.get_nli_accs()
 
-        nli_preds = nli_results.get_nli_preds()
-        torch.save(nli_preds, os.path.join(version_path, 'preds.pt'))
-        logging.info(f'Pred: {nli_preds}')
+        example_preds, _ = nli_results.get_example_preds()
+        torch.save(example_preds, os.path.join(version_store_path, 'example_preds.pt'))
+
+        test_preds, test_trues = nli_results.get_test_preds()
+        torch.save(test_preds, os.path.join(version_store_path, 'test_preds.pt'))
+        torch.save(test_trues, os.path.join(version_store_path, 'test_trues.pt'))
+
+        logging.info(f'Pred: {example_preds}')
     else:
         nli_accs = {}
 
     accs = {**nli_accs, **transfer_accs}
     accs = {k: round(v, 1) for k, v in accs.items()}
 
-    with open(os.path.join(version_path, 'accs.txt'), 'w') as f:
+    with open(os.path.join(version_store_path, 'accs.txt'), 'w') as f:
         json.dump(accs, f)
 
     logging.info(f'{args.model_type} : {accs}')
