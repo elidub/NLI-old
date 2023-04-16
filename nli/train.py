@@ -17,12 +17,12 @@ def parse_option():
 
     parser.add_argument('--model_type', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
     
-    parser.add_argument('--ckpt_path', type=str, help='Path to save checkpoint')
+    parser.add_argument('--ckpt_path', type=str, default = None, help='Path to save checkpoint')
     parser.add_argument('--version', default=None, help='Version of the model to load')
 
     parser.add_argument('--path_to_vocab', type=str, default='store/vocab.pkl', help='Path to vocab')
 
-    parser.add_argument('--epochs', type=int, default=10, help='Max number of training epochs')
+    parser.add_argument('--epochs', type=int, default=20, help='Max number of training epochs')
     parser.add_argument('--num_workers', type=int, default=3, help='Number of workers for dataloader')
 
     # parser.add_argument('--batch_size', type=int, default=64, help='batch size')
@@ -43,8 +43,18 @@ def parse_option():
 
     return args
 
-def setup_vocab(path_to_vocab):
-    vocab = pickle.load(open(path_to_vocab, 'rb'))
+
+class CustomUnpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        if name == 'Vocabulary':
+            from data import Vocabulary
+            return Vocabulary
+        return super().find_class(module, name)
+
+def setup_vocab(path_to_vocab = 'store/vocab.pkl'):
+    # vocab = pickle.load(open(path_to_vocab, 'rb'))
+    vocab = CustomUnpickler(open(path_to_vocab, 'rb')).load()
     return vocab
 
 def setup_model(model_type, vocab, hidden_dim = 2048):
@@ -71,14 +81,14 @@ def setup_model(model_type, vocab, hidden_dim = 2048):
 
 def main(args):
 
+    ckpt_path = args.ckpt_path if args.ckpt_path is not None else args.model_type
+
     vocab    = setup_vocab(args.path_to_vocab)
     model, _ = setup_model(args.model_type, vocab)
     datamodule = NLIDataModule(vocab=vocab, batch_size=64, num_workers=args.num_workers)
 
     trainer = pl.Trainer(
-        # default_root_dir = args.ckpt_path,
-        # default_root_dir = '/my_log',
-        logger = pl.loggers.TensorBoardLogger('logs', name=args.ckpt_path, version=args.version),
+        logger = pl.loggers.TensorBoardLogger('logs', name=ckpt_path, version=args.version),
         max_epochs = args.epochs, 
         log_every_n_steps = 1, 
         accelerator = 'gpu' if torch.cuda.is_available() else 'cpu',

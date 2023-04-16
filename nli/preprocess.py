@@ -85,10 +85,14 @@ def main(args):
         logging.info('Loading SNLI...')
         dataset_snli = load_from_disk('data/snli')
 
-        samples = dataset_snli['train']['premise'] + dataset_snli['train']['hypothesis']
-        
+        samples = dataset_snli['train']['premise'] + dataset_snli['train']['hypothesis'] + \
+                    dataset_snli['validation']['premise'] + dataset_snli['validation']['hypothesis'] + \
+                    dataset_snli['test']['premise'] + dataset_snli['test']['hypothesis']
+
         vocab = Vocabulary(samples, path_to_vec = args.path_to_vec)
 
+
+        print(f'Saving vocab to {args.path_to_vocab}')
         with open(args.path_to_vocab, 'wb') as f:
             pickle.dump(vocab, f)
 

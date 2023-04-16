@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu_titanrtx_shared_course
+#SBATCH --gres=gpu:1
+#SBATCH --job-name=EvalNLI
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=3
+#SBATCH --time=04:00:00
+#SBATCH --mem=32000M
+#SBATCH --output=jobs/slurm_output/eval_%A.out
+
+module purge
+module load 2021
+module load Anaconda3/2021.05
+
+cd $HOME/NLI/
+source activate nli
+
+# srun python -u nli/eval.py --model_type avg_word_emb --version version_2
+
+# srun python -u nli/train.py --model_type uni_lstm --version version_2
+
+# srun python -u nli/train.py --model_type bi_lstm --version version_0
+
+srun python -u nli/train.py --model_type max_pool_lstm --version version_0

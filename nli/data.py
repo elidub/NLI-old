@@ -52,7 +52,7 @@ class Vocabulary:
                     wordvec[word] = torch.tensor(list(map(float, vec.split())))
                 # i += 1
                 # if i > 10000:
-                #     break
+                #     pass
 
         assert list( wordvec.keys() )[:2] == ['<unk>', '<pad>']
 
@@ -87,6 +87,11 @@ class DataSetPadding():
     def prepare_sent(self, sent):
 
         slen = len(sent)
+
+        if slen > self.maxlen:
+            print(f'Sentence length exceeding {slen}')
+            sent = sent[:self.maxlen]
+            slen = self.maxlen
 
         assert slen <= self.maxlen, f"Sentence length exceeds the maximum length of {self.maxlen}"
         assert slen > 0, "Sentence length is 0"
@@ -125,10 +130,10 @@ class NLIDataModule(pl.LightningDataModule):
 
         dataset_snli = load_from_disk('data/snli')
 
-        self.dataset = {DataSetPadding(dataset_snli[split], self.vocab) for split in dataset_snli}
+        self.dataset = { split : DataSetPadding(dataset_snli[split], self.vocab) for split in dataset_snli }
 
-        for split in ['train', 'validation']:
-             self.dataset[split] = utils.data.Subset(self.dataset[split], range(1000))
+        # for split in ['train', 'validation']:
+        #      self.dataset[split] = utils.data.Subset(self.dataset[split], range(1000))
 
     def train_dataloader(self):
         return utils.data.DataLoader(self.dataset['train'], batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)

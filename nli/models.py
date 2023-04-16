@@ -131,27 +131,6 @@ class NLINet(nn.Module):
     def concat_sentreps(self, sentrep1, sentrep2):
         return torch.cat([sentrep1, sentrep2, torch.abs(sentrep1 - sentrep2), sentrep1 * sentrep2], dim=1)
     
-    # def get_ids(self, sentence):
-    #     unk_id = list(self.vocab.wordvec.keys()).index('<unk>')
-    #     pad_id = list(self.vocab.wordvec.keys()).index('<pad>')
-    #     slen = len(sentence)
-
-    #     print('slen', slen)
-
-    #     # put slen as torch integer
-
-
-    #     assert slen <= self.maxlen, f"Sentence length exceeds the maximum length of {self.maxlen}"
-    #     assert slen > 0, "Sentence length is 0"
-    #     assert unk_id == 0, "Unknown token id is not 0"
-    #     assert pad_id == 1, "Padding token id is not 1"
-
-    #     indices = [self.vocab.word2id.get(word, unk_id) for word in sentence] + [pad_id] * (self.maxlen - slen)
-    #     indices = torch.tensor(indices, dtype=torch.long)
-    #     # indices = indices.unsqueeze(0)
-    #     print('indices device', indices.device)
-    #     return indices, slen
-    
     def encode(self, sent_id, slen):
         wordvec = self.embedding(sent_id)
         sentrep = self.encoder(wordvec, slen)
