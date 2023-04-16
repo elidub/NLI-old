@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=3
 #SBATCH --time=04:00:00
 #SBATCH --mem=32000M
-#SBATCH --array=1-4%2
+#SBATCH --array=2-4%1
 #SBATCH --output=jobs/slurm_output/eval_%A_%a.out
 
 module purge
@@ -20,9 +20,4 @@ cd $HOME/NLI/
 source activate nli
 
 srun python -u nli/eval.py $(head -$SLURM_ARRAY_TASK_ID $ARRAY_FILE | tail -1)
-
-# srun python -u nli/eval.py --model_type uni_lstm
-
-# srun python -u nli/eval.py --model_type bi_lstm 
-
-# srun python -u nli/eval.py --model_type max_pool_lstm
+srun python -u nli/results.py $(head -$SLURM_ARRAY_TASK_ID $ARRAY_FILE | tail -1)

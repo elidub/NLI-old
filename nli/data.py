@@ -144,6 +144,8 @@ class NLIDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return utils.data.DataLoader(self.dataset['test'], batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
     
+    def predict_dataloader(self):
+        return utils.data.DataLoader(self.dataset['predict'], batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
 
 if __name__ == '__main__':
     dataset_snli = load_from_disk('data/snli')

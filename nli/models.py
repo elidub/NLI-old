@@ -105,6 +105,7 @@ class MLP(nn.Module):
             nn.Linear(hidden_dim, hidden_dim),
             nn.Linear(hidden_dim, output_dim)
         )
+        # No final SoftMax as that is included in the loss function nn.CrossEntropyLoss()
 
     def forward(self, x):
         return self.mlp(x)

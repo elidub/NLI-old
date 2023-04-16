@@ -15,6 +15,11 @@ class Learner(pl.LightningModule):
     def encode(self, embedding, length):
         e = self.net.encode(embedding, length)
         return e
+    
+    def forward(self, batch):
+        x, y = batch
+        y_hat = self.net(x)
+        return y_hat, y
 
     def step(self, batch, mode='train'):
         x, y = batch

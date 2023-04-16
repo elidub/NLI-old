@@ -50,8 +50,8 @@ class TransferResults:
         
         # Read the results
         _, version_path = find_checkpoint(args.ckpt_path, args.version)
-        # with open(os.path.join(version_path, 'results.txt'), 'r') as f:
-        with open(os.path.join('results.txt'), 'r') as f:
+        with open(os.path.join(version_path, 'results.txt'), 'r') as f:
+        # with open(os.path.join('results.txt'), 'r') as f:
             results = json.load(f)
         self.results = results
 
@@ -102,33 +102,43 @@ class NLIResults:
     
     def get_nli_accs(self):
         return {'val': self.validate()*100., 'test': self.test()*100., }
+    
+    def get_nli_preds(self):
+        y_hat, y = self.trainer.predict(self.model, datamodule=self.datamodule)[0]
+        y_pred = torch.nn.functional.softmax(y_hat, dim=1)
+        return y_pred
 
 
 def main(args):
 
     args.ckpt_path = args.ckpt_path if args.ckpt_path is not None else args.model_type
 
+    _, version_path = find_checkpoint(args.ckpt_path, args.version)
     
     if args.tranfer_results:
-        transfer_results = TransferResults(args, {'MR', 'CR'})
+        transfer_results = TransferResults(args, {'MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC', 'MRPC', 'SICKEntailment'})
         transfer_accs = transfer_results.get_transfer_accs()
     else: 
         transfer_accs = {}
 
     if args.nli_results:
         nli_results = NLIResults(args)
+
         nli_accs = nli_results.get_nli_accs()
+
+        nli_preds = nli_results.get_nli_preds()
+        torch.save(nli_preds, os.path.join(version_path, 'preds.pt'))
+        logging.info(f'Pred: {nli_preds}')
     else:
         nli_accs = {}
 
     accs = {**nli_accs, **transfer_accs}
     accs = {k: round(v, 1) for k, v in accs.items()}
 
-    _, version_path = find_checkpoint(args.ckpt_path, args.version)
     with open(os.path.join(version_path, 'accs.txt'), 'w') as f:
         json.dump(accs, f)
 
-    print(args.model_type, accs)
+    logging.info(f'{args.model_type} : {accs}')
 
 
 
