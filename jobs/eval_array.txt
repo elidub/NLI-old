@@ -1,0 +1,4 @@
+--model_type avg_word_emb
+--model_type uni_lstm
+--model_type bi_lstm
+--model_type max_pool_lstm

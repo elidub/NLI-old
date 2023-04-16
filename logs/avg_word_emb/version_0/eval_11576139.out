@@ -1,0 +1,143 @@
+Namespace(model_type='avg_word_emb', ckpt_path=None, version='version_2', path_to_vocab='store/vocab.pkl', path_to_data='./SentEval/data')
+2023-04-16 10:59:31,074 : ***** Transfer task : MR *****
+
+
+2023-04-16 10:59:31,203 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 10:59:33,606 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 10:59:33,645 : Evaluating!
+2023-04-16 10:59:33,658 : Generating sentence embeddings
+2023-04-16 10:59:42,165 : Generated sentence embeddings
+2023-04-16 10:59:42,167 : Training pytorch-MLP-nhid0-adam-bs64 with (inner) 2-fold cross-validation
+2023-04-16 11:00:00,712 : Best param found at split 1: l2reg = 0.0001                 with score 74.75
+2023-04-16 11:00:23,954 : Best param found at split 2: l2reg = 1e-05                 with score 72.37
+2023-04-16 11:00:27,392 : Dev acc : 73.56 Test acc : 73.48
+
+2023-04-16 11:00:27,398 : ***** Transfer task : CR *****
+
+
+2023-04-16 11:00:27,426 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:00:30,091 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:00:30,172 : Evaluating!
+2023-04-16 11:00:30,181 : Generating sentence embeddings
+Sentence length exceeding 106
+2023-04-16 11:00:33,423 : Generated sentence embeddings
+2023-04-16 11:00:33,423 : Training pytorch-MLP-nhid0-adam-bs64 with (inner) 2-fold cross-validation
+2023-04-16 11:00:40,963 : Best param found at split 1: l2reg = 1e-05                 with score 75.99
+2023-04-16 11:00:51,011 : Best param found at split 2: l2reg = 0.001                 with score 76.8
+2023-04-16 11:00:52,167 : Dev acc : 76.4 Test acc : 75.28
+
+2023-04-16 11:00:52,172 : ***** Transfer task : MPQA *****
+
+
+2023-04-16 11:00:52,191 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:00:54,831 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:00:54,912 : Evaluating!
+2023-04-16 11:00:54,923 : Generating sentence embeddings
+2023-04-16 11:01:04,086 : Generated sentence embeddings
+2023-04-16 11:01:04,087 : Training pytorch-MLP-nhid0-adam-bs64 with (inner) 2-fold cross-validation
+2023-04-16 11:01:17,196 : Best param found at split 1: l2reg = 0.0001                 with score 84.12
+2023-04-16 11:01:31,895 : Best param found at split 2: l2reg = 1e-05                 with score 84.03
+2023-04-16 11:01:34,285 : Dev acc : 84.08 Test acc : 84.31
+
+2023-04-16 11:01:34,289 : ***** Transfer task : SUBJ *****
+
+
+2023-04-16 11:01:34,542 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:01:37,106 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:01:37,185 : Evaluating!
+2023-04-16 11:01:37,201 : Generating sentence embeddings
+Sentence length exceeding 107
+Sentence length exceeding 122
+2023-04-16 11:01:45,184 : Generated sentence embeddings
+2023-04-16 11:01:45,185 : Training pytorch-MLP-nhid0-adam-bs64 with (inner) 2-fold cross-validation
+2023-04-16 11:02:03,251 : Best param found at split 1: l2reg = 1e-05                 with score 89.5
+2023-04-16 11:02:24,681 : Best param found at split 2: l2reg = 1e-05                 with score 89.32
+2023-04-16 11:02:26,498 : Dev acc : 89.41 Test acc : 88.66
+
+2023-04-16 11:02:26,506 : ***** Transfer task : SST Binary classification *****
+
+
+2023-04-16 11:02:26,655 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:02:29,373 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:02:29,452 : Evaluating!
+2023-04-16 11:02:29,454 : Computing embedding for train
+2023-04-16 11:03:26,110 : Computed train embeddings
+2023-04-16 11:03:26,111 : Computing embedding for dev
+2023-04-16 11:03:26,816 : Computed dev embeddings
+2023-04-16 11:03:26,816 : Computing embedding for test
+2023-04-16 11:03:28,271 : Computed test embeddings
+2023-04-16 11:03:28,271 : Training pytorch-MLP-nhid0-adam-bs64 with standard validation..
+2023-04-16 11:05:45,867 : [('reg:1e-05', 78.21), ('reg:0.0001', 77.87), ('reg:0.001', 77.18), ('reg:0.01', 75.92)]
+2023-04-16 11:05:45,868 : Validation : best param found is reg = 1e-05 with score             78.21
+2023-04-16 11:05:45,868 : Evaluating...
+2023-04-16 11:06:22,717 : 
+Dev acc : 78.21 Test acc : 78.47 for             SST Binary classification
+
+2023-04-16 11:06:22,720 : ***** Transfer task : TREC *****
+
+
+2023-04-16 11:06:22,796 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:06:25,540 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:06:25,627 : Evaluating!
+2023-04-16 11:06:30,379 : Computed train embeddings
+2023-04-16 11:06:30,818 : Computed test embeddings
+2023-04-16 11:06:30,819 : Training pytorch-MLP-nhid0-adam-bs64 with 2-fold cross-validation
+2023-04-16 11:06:55,147 : [('reg:1e-05', 62.31), ('reg:0.0001', 62.11), ('reg:0.001', 60.95), ('reg:0.01', 56.02)]
+2023-04-16 11:06:55,147 : Cross-validation : best param found is reg = 1e-05             with score 62.31
+2023-04-16 11:06:55,147 : Evaluating...
+2023-04-16 11:07:00,314 : 
+Dev acc : 62.31 Test acc : 69.4             for TREC
+
+2023-04-16 11:07:00,318 : ***** Transfer task : MRPC *****
+
+
+2023-04-16 11:07:00,360 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:07:03,148 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:07:03,231 : Evaluating!
+2023-04-16 11:07:03,232 : Computing embedding for train
+2023-04-16 11:07:10,286 : Computed train embeddings
+2023-04-16 11:07:10,286 : Computing embedding for test
+2023-04-16 11:07:13,286 : Computed test embeddings
+2023-04-16 11:07:13,296 : Training pytorch-MLP-nhid0-adam-bs64 with 2-fold cross-validation
+2023-04-16 11:07:22,202 : [('reg:1e-05', 71.17), ('reg:0.0001', 71.2), ('reg:0.001', 71.2), ('reg:0.01', 70.53)]
+2023-04-16 11:07:22,202 : Cross-validation : best param found is reg = 0.0001             with score 71.2
+2023-04-16 11:07:22,202 : Evaluating...
+2023-04-16 11:07:24,404 : Dev acc : 71.2 Test acc 70.49; Test F1 80.89 for MRPC.
+
+2023-04-16 11:07:24,405 : ***** Transfer task : SICK-Entailment*****
+
+
+2023-04-16 11:07:24,454 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:07:27,146 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:07:27,232 : Evaluating!
+2023-04-16 11:07:27,234 : Computing embedding for train
+2023-04-16 11:07:35,134 : Computed train embeddings
+2023-04-16 11:07:35,134 : Computing embedding for dev
+2023-04-16 11:07:36,003 : Computed dev embeddings
+2023-04-16 11:07:36,003 : Computing embedding for test
+2023-04-16 11:07:44,630 : Computed test embeddings
+2023-04-16 11:07:44,648 : Training pytorch-MLP-nhid0-adam-bs64 with standard validation..
+2023-04-16 11:07:58,329 : [('reg:1e-05', 78.2), ('reg:0.0001', 78.2), ('reg:0.001', 77.0), ('reg:0.01', 70.8)]
+2023-04-16 11:07:58,329 : Validation : best param found is reg = 1e-05 with score             78.2
+2023-04-16 11:07:58,330 : Evaluating...
+2023-04-16 11:08:01,994 : 
+Dev acc : 78.2 Test acc : 78.18 for                        SICK entailment
+
+2023-04-16 11:08:01,996 : ***** Transfer task : STS14 *****
+
+
+/home/lcur1112/.conda/envs/nli/lib/python3.10/site-packages/SentEval-0.1.0-py3.10.egg/senteval/sts.py:42: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify 'dtype=object' when creating the ndarray.
+/home/lcur1112/.conda/envs/nli/lib/python3.10/site-packages/SentEval-0.1.0-py3.10.egg/senteval/sts.py:43: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify 'dtype=object' when creating the ndarray.
+2023-04-16 11:08:02,045 : Loading model from logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:08:04,808 : open file: /home/lcur1112/NLI/logs/avg_word_emb/version_2/checkpoints/epoch=7-step=68672.ckpt
+2023-04-16 11:08:04,891 : Evaluating!
+2023-04-16 11:08:05,728 : deft-forum : pearson = 0.2096, spearman = 0.2718
+2023-04-16 11:08:06,289 : deft-news : pearson = 0.4619, spearman = 0.4466
+2023-04-16 11:08:07,659 : headlines : pearson = 0.3806, spearman = 0.4052
+2023-04-16 11:08:09,032 : images : pearson = 0.4686, spearman = 0.5811
+2023-04-16 11:08:10,403 : OnWN : pearson = 0.4661, spearman = 0.5469
+2023-04-16 11:08:11,771 : tweet-news : pearson = 0.3465, spearman = 0.3547
+2023-04-16 11:08:11,771 : ALL (weighted average) : Pearson = 0.3945,             Spearman = 0.4459
+2023-04-16 11:08:11,772 : ALL (average) : Pearson = 0.3889,             Spearman = 0.4344
+
+{'MR': {'devacc': 73.56, 'acc': 73.48, 'ndev': 10662, 'ntest': 10662}, 'CR': {'devacc': 76.4, 'acc': 75.28, 'ndev': 3775, 'ntest': 3775}, 'MPQA': {'devacc': 84.08, 'acc': 84.31, 'ndev': 10606, 'ntest': 10606}, 'SUBJ': {'devacc': 89.41, 'acc': 88.66, 'ndev': 10000, 'ntest': 10000}, 'SST2': {'devacc': 78.21, 'acc': 78.47, 'ndev': 872, 'ntest': 1821}, 'TREC': {'devacc': 62.31, 'acc': 69.4, 'ndev': 5452, 'ntest': 500}, 'MRPC': {'devacc': 71.2, 'acc': 70.49, 'f1': 80.89, 'ndev': 4076, 'ntest': 1725}, 'SICKEntailment': {'devacc': 78.2, 'acc': 78.18, 'ndev': 500, 'ntest': 4927}, 'STS14': {'deft-forum': {'pearson': PearsonRResult(statistic=0.20964538804561297, pvalue=7.297704755541146e-06), 'spearman': SignificanceResult(statistic=0.2718190582812241, pvalue=4.605771590943918e-09), 'nsamples': 450}, 'deft-news': {'pearson': PearsonRResult(statistic=0.4618628770565425, pvalue=2.943801689934654e-17), 'spearman': SignificanceResult(statistic=0.4465564900767604, pvalue=4.138629415264247e-16), 'nsamples': 300}, 'headlines': {'pearson': PearsonRResult(statistic=0.3805895002482936, pvalue=2.9185258272246948e-27), 'spearman': SignificanceResult(statistic=0.40522065167897325, pvalue=5.245714625574646e-31), 'nsamples': 750}, 'images': {'pearson': PearsonRResult(statistic=0.46863205339640357, pvalue=3.275693790141371e-42), 'spearman': SignificanceResult(statistic=0.581071601233189, pvalue=6.132632395870911e-69), 'nsamples': 750}, 'OnWN': {'pearson': PearsonRResult(statistic=0.46605731542886, pvalue=1.0418208478273663e-41), 'spearman': SignificanceResult(statistic=0.5469452602464396, pvalue=9.761971811135818e-60), 'nsamples': 750}, 'tweet-news': {'pearson': PearsonRResult(statistic=0.3465008615929639, pvalue=1.3993087583428102e-22), 'spearman': SignificanceResult(statistic=0.3547451198542922, pvalue=1.1620912568640313e-23), 'nsamples': 750}, 'all': {'pearson': {'mean': 0.3888813326281128, 'wmean': 0.3944624228633012}, 'spearman': {'mean': 0.43439303022847975, 'wmean': 0.4459393328024665}}}}

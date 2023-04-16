@@ -16,13 +16,15 @@ import pickle
 import yaml
 import json
 import torch
-
-from data import NLIDataModule, DataSetPadding
-from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet
-from learner import Learner
-from train import setup_vocab, setup_model
 import argparse
 import os
+
+# from nli.data import DataSetPadding
+# from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet
+# from learner import Learner
+# from train import setup_vocab, setup_model
+from setup import find_checkpoint, load_model, prep_sent
+    
 
 # import SentEval
 PATH_TO_SENTEVAL = './'
@@ -46,15 +48,15 @@ def parse_option():
 
     return args
 
-def find_checkpoint(ckpt_path, version):
-    versions = os.listdir(os.path.join('logs', ckpt_path))
-    version_ = versions[0] if len(versions) == 1 else version
-    assert version == version_
-    ckpts = os.listdir(os.path.join('logs', ckpt_path, version, 'checkpoints'))
-    assert len(ckpts) == 1
-    version_path = os.path.join('logs', ckpt_path, version)
-    ckpt_path = os.path.join('logs', ckpt_path, version, 'checkpoints', ckpts[0])
-    return ckpt_path, version_path
+# def find_checkpoint(ckpt_path, version):
+#     versions = os.listdir(os.path.join('logs', ckpt_path))
+#     version_ = versions[0] if len(versions) == 1 else version
+#     assert version == version_
+#     ckpts = os.listdir(os.path.join('logs', ckpt_path, version, 'checkpoints'))
+#     assert len(ckpts) == 1
+#     version_path = os.path.join('logs', ckpt_path, version)
+#     ckpt_path = os.path.join('logs', ckpt_path, version, 'checkpoints', ckpts[0])
+#     return ckpt_path, version_path
 
 
 def prepare(params, samples):
@@ -64,15 +66,16 @@ def prepare(params, samples):
     remember to add what you model needs into the params dictionary
     """
 
-    ckpt_path, _ = find_checkpoint(params.ckpt_path, params.version)
-    logging.info(f'Loading model from {ckpt_path}')
+    # ckpt_path, _ = find_checkpoint(params.ckpt_path, params.version)
+    # logging.info(f'Loading model from {ckpt_path}')
 
-    vocab  = setup_vocab(params['path_to_vocab'])
-    _, net = setup_model(model_type = params['model_type'], vocab = vocab)
-    params.model = Learner.load_from_checkpoint(ckpt_path, net=net)
-    params.model.eval()
+    # vocab  = setup_vocab(params['path_to_vocab'])
+    # _, net = setup_model(model_type = params['model_type'], vocab = vocab)
+    # params.model = Learner.load_from_checkpoint(ckpt_path, net=net)
+    # params.model.eval()
 
-    params.prep_sent = lambda sent: DataSetPadding(None, vocab).prepare_sent(sent)
+    params.model, vocab = load_model(params['model_type'], params['path_to_vocab'], params['ckpt_path'], params['version'])
+    params.prep_sent = lambda sent: prep_sent(sent, vocab)
 
     logging.info(f'Evaluating!')
 
@@ -95,6 +98,8 @@ def batcher(params, batch):
     embeddings = params.model.net.encode(sent_ids, slens)
     embeddings = embeddings.detach().cpu().numpy()
 
+    # embeddings = np.random.randn(len(batch), 300)
+
     return embeddings
 
 
@@ -106,7 +111,7 @@ def main(args):
     # for example the path to a dictionary of indices, of hyper parameters
     # this dictionary is passed to the batched and the prepare fucntions
     params_senteval = {
-        'task_path': args.path_to_data, 'usepytorch': True, 'kfold': 2,
+        'task_path': args.path_to_data, 'usepytorch': True, 'kfold': 10,
         'classifier': {'nhid': 0, 'optim': 'adam', 'batch_size': 64, 'tenacity': 5, 'epoch_size': 4},
         'model_type': args.model_type,
         'ckpt_path' : ckpt_path,
@@ -128,8 +133,7 @@ def main(args):
     # save results to txt file
     _, version_path = find_checkpoint(ckpt_path, args.version)
     with open(os.path.join(version_path, 'results.txt'), 'w') as f:
-        for key, value in results.items():
-            f.write(f"{key}: {value}\n")
+        json.dump(results, f)
 
 if __name__ == "__main__":
     args = parse_option()

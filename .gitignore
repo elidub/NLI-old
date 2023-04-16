@@ -4,3 +4,5 @@ SentEval/
 nli/__pycache__/
 logs/*/*/checkpoints/
 jobs/slurm_output/
+build/
+dist/

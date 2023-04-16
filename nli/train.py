@@ -1,13 +1,14 @@
 import torch
 import pytorch_lightning as pl
 import argparse
+import pickle
 
 from data import NLIDataModule
-from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet
-from learner import Learner
+from setup import setup_vocab, setup_model
 
-import pickle
-from datasets import load_from_disk
+# from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet
+# from learner import Learner
+# from datasets import load_from_disk
 
 
 
@@ -44,40 +45,40 @@ def parse_option():
     return args
 
 
-class CustomUnpickler(pickle.Unpickler):
+# class CustomUnpickler(pickle.Unpickler):
 
-    def find_class(self, module, name):
-        if name == 'Vocabulary':
-            from data import Vocabulary
-            return Vocabulary
-        return super().find_class(module, name)
+#     def find_class(self, module, name):
+#         if name == 'Vocabulary':
+#             from data import Vocabulary
+#             return Vocabulary
+#         return super().find_class(module, name)
 
-def setup_vocab(path_to_vocab = 'store/vocab.pkl'):
-    # vocab = pickle.load(open(path_to_vocab, 'rb'))
-    vocab = CustomUnpickler(open(path_to_vocab, 'rb')).load()
-    return vocab
+# def setup_vocab(path_to_vocab = 'store/vocab.pkl'):
+#     # vocab = pickle.load(open(path_to_vocab, 'rb'))
+#     vocab = CustomUnpickler(open(path_to_vocab, 'rb')).load()
+#     return vocab
 
-def setup_model(model_type, vocab, hidden_dim = 2048):
+# def setup_model(model_type, vocab, hidden_dim = 2048):
 
-    if model_type == 'avg_word_emb':
-        encoder = AvgWordEmb()
-        classifier = MLP(300*4)
-    elif model_type == 'uni_lstm':
-        encoder = UniLSTM(hidden_dim)
-        classifier = MLP(hidden_dim*4)
-    elif model_type == 'bi_lstm':
-        encoder = BiLSTM(hidden_dim)
-        classifier = MLP(hidden_dim*4*2)
-    elif model_type == 'max_pool_lstm':
-        encoder = MaxPoolLSTM(hidden_dim)
-        classifier = MLP(hidden_dim*4*2)
-    else:
-        raise ValueError('Unknown model type')
+#     if model_type == 'avg_word_emb':
+#         encoder = AvgWordEmb()
+#         classifier = MLP(300*4)
+#     elif model_type == 'uni_lstm':
+#         encoder = UniLSTM(hidden_dim)
+#         classifier = MLP(hidden_dim*4)
+#     elif model_type == 'bi_lstm':
+#         encoder = BiLSTM(hidden_dim)
+#         classifier = MLP(hidden_dim*4*2)
+#     elif model_type == 'max_pool_lstm':
+#         encoder = MaxPoolLSTM(hidden_dim)
+#         classifier = MLP(hidden_dim*4*2)
+#     else:
+#         raise ValueError('Unknown model type')
 
-    net = NLINet(encoder, classifier, vocab)
-    model = Learner(net)
+#     net = NLINet(encoder, classifier, vocab)
+#     model = Learner(net)
 
-    return model, net
+#     return model, net
 
 def main(args):
 

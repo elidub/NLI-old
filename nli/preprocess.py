@@ -8,10 +8,10 @@ import pickle
 import torch
 import nltk
 nltk.download('punkt')
-from data import Vocabulary
 import argparse
 import logging
 
+from data import Vocabulary
 
 def parse_option():
     parser = argparse.ArgumentParser(description="Training NLI models")

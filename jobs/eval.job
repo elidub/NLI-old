@@ -16,10 +16,10 @@ module load Anaconda3/2021.05
 cd $HOME/NLI/
 source activate nli
 
-# srun python -u nli/eval.py --model_type avg_word_emb --version version_2
+# srun python -u nli/eval.py --model_type avg_word_emb
 
-# srun python -u nli/train.py --model_type uni_lstm --version version_2
+# srun python -u nli/eval.py --model_type uni_lstm
 
-# srun python -u nli/train.py --model_type bi_lstm --version version_0
+# srun python -u nli/eval.py --model_type bi_lstm 
 
-srun python -u nli/train.py --model_type max_pool_lstm --version version_0
+srun python -u nli/eval.py --model_type max_pool_lstm
