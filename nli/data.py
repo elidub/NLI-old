@@ -78,7 +78,7 @@ class DataSetPadding():
         self.pad_id = list(self.vocab.wordvec.keys()).index('<pad>')
 
     def __len__(self):
-        assert self.dataset.num_rows == len(self.dataset)
+        # assert self.dataset.num_rows == len(self.dataset)
         return len(self.dataset)
 
     # def get_embedding(self, sent):

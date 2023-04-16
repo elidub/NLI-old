@@ -20,8 +20,10 @@ import torch
 import argparse
 
 from setup import load_model, prep_sent, find_checkpoint
-from data import NLIDataModule
+from data import NLIDataModule, DataSetPadding
 
+import nltk
+nltk.download('punkt')
 
 def parse_option():
     parser = argparse.ArgumentParser(description="Saving results of NLI and SentEval")
@@ -103,8 +105,11 @@ class NLIResults:
     def get_nli_accs(self):
         return {'val': self.validate()*100., 'test': self.test()*100., }
     
-    def get_example_preds(self):
-        y_hat, y = self.trainer.predict(self.model, datamodule=self.datamodule)[0]
+    def get_example_preds(self, dataloaders = None):
+        if dataloaders is None:
+            y_hat, y = self.trainer.predict(self.model, datamodule=self.datamodule)[0]
+        else:
+            y_hat, y = self.trainer.predict(self.model, dataloaders=dataloaders)[0]
         y_pred = torch.nn.functional.softmax(y_hat, dim=1)
         return y_pred, y
     
@@ -118,6 +123,46 @@ class NLIResults:
         
         y_pred = torch.nn.functional.softmax(y_hat, dim=1)
         return y_pred, y
+
+
+
+
+class Args:
+    def __init__(self, model_type, path_to_vocab, ckpt_path, version, num_workers = 0):
+        self.model_type = model_type
+        self.path_to_vocab = path_to_vocab
+        self.ckpt_path = ckpt_path
+        self.version = version
+        self.num_workers = num_workers
+
+class NewSentence:
+    def __init__(self, premise, hypothesis, model_type, path_to_vocab = 'store/vocab.pkl', ckpt_path = None, version = 'version_0'):
+        
+        ckpt_path = ckpt_path if ckpt_path is not None else model_type
+
+        model, vocab = load_model(model_type, path_to_vocab, ckpt_path, version)
+        dataset = self.dataset_sent(premise, hypothesis)
+        dataloader = self.dataloader(dataset, vocab)
+
+
+        args = Args(model_type, path_to_vocab, ckpt_path, version)
+        results = NLIResults(args)
+        pred, _ = results.get_example_preds(dataloaders=dataloader)
+        self.pred = pred.squeeze()
+
+
+
+    def dataset_sent(self, premise, hypothesis):
+        example = dict(premise=premise, hypothesis=hypothesis)
+        example['premise']    = [word.lower() for word in nltk.tokenize.word_tokenize(example['premise'])]
+        example['hypothesis'] = [word.lower() for word in nltk.tokenize.word_tokenize(example['hypothesis'])]
+        example['label']      = 1 # Fake 1
+        return [example]
+    
+    def dataloader(self, dataset, vocab):
+        dataset = DataSetPadding(dataset, vocab)
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=64, shuffle=False)
+        return dataloader
 
 
 def main(args):

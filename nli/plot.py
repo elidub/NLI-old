@@ -13,16 +13,18 @@ import torch
 from torch import utils
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from setup import find_checkpoint
+from results import NewSentence
 
 
 class PlotResults:
     
 
-    def __init__(self, models, versions):
+    def __init__(self, models, versions, dims):
 
-        assert len(models) == len(versions), 'models and versions must be of the same length'
+        assert len(models) == len(versions) == len(dims), 'models and versions must be of the same length'
 
         models_all = {'avg_word_emb': 'Avg WordEmb', 'uni_lstm': 'Uni-LSTM', 'bi_lstm': 'Bi-LSTM', 'max_pool_lstm': 'BiLSTM-Max'}
         self.models = {k: v for k, v in models_all.items() if k in models}
@@ -30,13 +32,14 @@ class PlotResults:
         assert len(set(versions)) == 1, '#TODO: fix self.version to be compatible with different versions for different models'
         self.version = versions[0]
 
+        self.dims = dims
+
         self.colors = {'Entailment' : 'tab:green', 'Neutral' : 'tab:blue', 'Contradiction' : 'tab:red'}
 
     def plot_examples(self):
 
         with open('data/examples_snli.json', 'r') as f:
             predict_data = json.load(f)
-        predict_data
 
         size = 2.5
         label_dict = {0 : 1/6, 1 : 0.5, 2 : 5/6}
@@ -77,6 +80,52 @@ class PlotResults:
         plt.tight_layout()
 
         return fig
+    
+    def plot_new_sample(self, premise, hypothesis, model_type):
+
+        pred = NewSentence(premise, hypothesis, model_type).pred
+
+
+        x = np.arange(3)
+        size = 3
+        ratio = 3
+        fig, (ax, ax2) = plt.subplots(1, 2, figsize=(ratio/2*size, size), sharey=True, sharex=True, gridspec_kw={'width_ratios': [ratio, 1]})
+        ax.bar(x, pred, color = list(self.colors.values()))
+        ax.set_xticks([])
+        ax.set_yticks([0, 0.5, 1])
+        ax.set_ylim(0, 1)
+
+
+        labels = list(self.colors.keys())
+
+        # handles = [plt.Rectangle((0,0),1,1, color=self.colors[label]) for label in labels]
+        # ax.legend(handles, labels, loc = 'upper left', prop={'size': 12})
+
+        # plot labels on top of bars
+        for i, (v, label) in enumerate(zip(pred, labels)):
+            ax.text(i - 0.1, v + 0.05, label, color=self.colors[label], rotation = 90, fontweight='bold')
+            
+
+
+        # fig.suptitle(self.models[model], size = 12)
+        ax.set_xlabel('Predicted class', y = -0.05)
+        ax.set_ylabel('Prediction probability')
+
+        ax2.text(0., 0.5, f"Model:\n{self.models[model_type]}\n\nPremise:\n{premise}\n\nHypothesis:\n{hypothesis}", size = 9,
+                 ha = 'left', va = 'center', wrap = True)
+        ax2.axis('off')
+
+        # fig.legend(handles, labels, loc='lower center', prop={'size': 12}, ncol=3, bbox_to_anchor=(0.5, -0.02))
+
+        # fig.suptitle('Premise; Hypothesis', style = 'italic', y = 0.95)
+
+        plt.tight_layout()
+
+        return fig
+
+
+
+        
 
 
 
@@ -129,6 +178,31 @@ class PlotResults:
         plt.tight_layout()
 
         return fig
+    
+
+
+    def print_results(self):
+
+        acc_dict = {}
+
+        for model, dim in zip(self.models, self.dims):
+            _, version_path = find_checkpoint(model, self.version)
+
+            # read file from  os.path.join(version_path, 'store/accs.txt' with json
+            with open(os.path.join(version_path, 'store/accs.txt'), 'r') as f:
+                accs = json.load(f)
+
+            acc_dict[model] = accs
+            acc_dict[model]['dim'] = dim
+
+        dtypes = {'val': float, 'test': float, 'micro': float, 'macro': float, 'dim': int}
+        alt_titles = {'val': 'dev', 'test': 'test', 'micro': 'micro', 'macro': 'macro'}
+        models_all =  {'avg_word_emb': 'Avg WordEmb', 'uni_lstm': 'Uni-LSTM', 'bi_lstm': 'Bi-LSTM', 'max_pool_lstm': 'BiLSTM-Max'}
+        custom_order = ['dim', 'val', 'test', 'micro', 'macro']
+
+        df = pd.DataFrame(acc_dict).T.astype(dtypes).loc[:, custom_order].rename(columns=alt_titles, index = self.models)
+
+        return df
     
     def __call__(self, fig_dir = 'figs'):
         fig = self.plot_examples().plot()
