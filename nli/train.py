@@ -16,7 +16,7 @@ from setup import setup_vocab, setup_model
 def parse_option():
     parser = argparse.ArgumentParser(description="Training NLI models")
 
-    parser.add_argument('--model_type', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'avg_word_emb2', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
+    parser.add_argument('--model_type', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
     parser.add_argument('--feature_type', type=str, default = 'baseline', help='Type of features to use', choices=['baseline', 'multiplication', 'exponent'])
     
     parser.add_argument('--ckpt_path', type=str, default = None, help='Path to save checkpoint')

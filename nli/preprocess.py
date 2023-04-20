@@ -19,7 +19,6 @@ def parse_option():
     parser = argparse.ArgumentParser(description="Training NLI models")
 
     parser.add_argument('--download_snli', action='store_true', default = False, help='Download and pre-process the SNLI dataset')
-    parser.add_argument('--add_examples_to_snli', action='store_true', default = False, help='Preprocess examples to be predicted and add them to the SNLI dataset')
     parser.add_argument('--download_glove', action='store_true', default = False, help='Download the GloVe dataset')
     parser.add_argument('--create_vocab', action='store_true', default = False, help='Create the vocabulary')
     
@@ -64,29 +63,6 @@ def download_snli():
 
     print('Done!')
 
-def add_examples_to_snli():
-    
-    with open('data/examples_snli.json', 'r') as f:
-        predict_data = json.load(f)
-    predict_dataset = Dataset.from_dict(predict_data)
-
-    print('Pre-processing to be predicted examples...')
-    predict_dataset = preprocess_snli({'predict' : predict_dataset})['predict']
-
-    print('Loading SNLI dataset and add to be predicted examples...')
-    dataset_snli = load_from_disk("data/snli")
-    dataset_snli['predict'] = predict_dataset
-
-    print('Saving SNLI dataset to disk...')
-    dataset_snli.save_to_disk("data/snli_predict")
-
-    # Remove non-emtpy directorythe data/snli/ 
-    shutil.rmtree('data/snli', ignore_errors=True)
-    # os.rename('data/snli_predict', 'data/snli')
-
-    print('Done!')
-
-
 ####### Download the GloVe dataset #######
 
 def download_glove():
@@ -111,9 +87,6 @@ def main(args):
     
     if args.download_snli:
         download_snli()
-
-    if args.add_examples_to_snli:
-        add_examples_to_snli()
 
     if args.download_glove:
         download_glove()

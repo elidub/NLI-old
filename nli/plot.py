@@ -26,7 +26,7 @@ class PlotResults:
 
         assert len(models) == len(versions) == len(dims), 'models and versions must be of the same length'
 
-        models_all = {'avg_word_emb': 'Avg WordEmb', 'uni_lstm': 'Uni-LSTM', 'bi_lstm': 'Bi-LSTM', 'max_pool_lstm': 'BiLSTM-Max'}
+        models_all = {'avg_word_emb': 'AvgWordEmb', 'uni_lstm': 'UniLSTM', 'bi_lstm': 'BiLSTM-last', 'max_pool_lstm': 'BiLSTM-Max'}
         self.models = {k: v for k, v in models_all.items() if k in models}
 
         assert len(set(versions)) == 1, '#TODO: fix self.version to be compatible with different versions for different models'
@@ -104,7 +104,8 @@ class PlotResults:
 
         # plot labels on top of bars
         for i, (v, label) in enumerate(zip(pred, labels)):
-            ax.text(i - 0.1, v + 0.05, label, color=self.colors[label], rotation = 90, fontweight='bold')
+            # ax.text(i - 0.1, v + 0.05, label, color=self.colors[label], rotation = 90, fontweight='bold')
+            ax.text(i - 0.1, 0.05, label, color='black', rotation = 90, fontweight='bold')
             
 
 

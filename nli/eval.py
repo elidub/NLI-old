@@ -48,16 +48,6 @@ def parse_option():
 
     return args
 
-# def find_checkpoint(ckpt_path, version):
-#     versions = os.listdir(os.path.join('logs', ckpt_path))
-#     version_ = versions[0] if len(versions) == 1 else version
-#     assert version == version_
-#     ckpts = os.listdir(os.path.join('logs', ckpt_path, version, 'checkpoints'))
-#     assert len(ckpts) == 1
-#     version_path = os.path.join('logs', ckpt_path, version)
-#     ckpt_path = os.path.join('logs', ckpt_path, version, 'checkpoints', ckpts[0])
-#     return ckpt_path, version_path
-
 
 def prepare(params, samples):
     """
@@ -65,14 +55,6 @@ def prepare(params, samples):
     here you will initialize your model.
     remember to add what you model needs into the params dictionary
     """
-
-    # ckpt_path, _ = find_checkpoint(params.ckpt_path, params.version)
-    # logging.info(f'Loading model from {ckpt_path}')
-
-    # vocab  = setup_vocab(params['path_to_vocab'])
-    # _, net = setup_model(model_type = params['model_type'], vocab = vocab)
-    # params.model = Learner.load_from_checkpoint(ckpt_path, net=net)
-    # params.model.eval()
 
     params.model, vocab = load_model(params['model_type'], params['path_to_vocab'], params['ckpt_path'], params['version'])
     params.prep_sent = lambda sent: prep_sent(sent, vocab)
@@ -89,6 +71,20 @@ def batcher(params, batch):
     or a complete batch (you may need masking for that).
     
     """
+
+    batch = batch[:10]
+    batch = [sent for sent in batch if sent != [] ]
+    sents = [' '.join(sent) for sent in batch]
+
+    # open a file and append the sentences
+    with open('sents.txt', 'a') as f:
+        f.write('| X | ')
+        for sent in sents:
+            f.write(sent)
+            f.write(' ; ') if sent is not sents[-1] else f.write(' |')
+        f.write('\n\n')
+    assert False
+
 
     # Since the words are already tokenized, we only apply lowercasing
     # to have the same preprocessing steps as we did for the SNLI data
@@ -130,6 +126,14 @@ def main(args):
     
     transfer_tasks = ['MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC',
                       'MRPC', 'SICKEntailment', 'STS14']
+
+    for transfer_task in transfer_tasks:
+        try:
+            se.eval([transfer_task])
+        except:
+            continue
+    assert False
+
 
     results = se.eval(transfer_tasks)
     print(results)

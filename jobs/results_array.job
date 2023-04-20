@@ -2,13 +2,13 @@
 
 #SBATCH --partition=gpu_titanrtx_shared_course
 #SBATCH --gres=gpu:1
-#SBATCH --job-name=EvalNLI
+#SBATCH --job-name=ResultsNLI
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=3
-#SBATCH --time=04:00:00
+#SBATCH --time=00:10:00
 #SBATCH --mem=32000M
 #SBATCH --array=1-4%2
-#SBATCH --output=jobs/slurm_output/eval_%A_%a.out
+#SBATCH --output=jobs/slurm_output/results_%A_%a.out
 
 module purge
 module load 2021
@@ -19,5 +19,4 @@ ARRAY_FILE=$HOME/NLI/jobs/model_types.txt
 cd $HOME/NLI/
 source activate nli
 
-srun python -u nli/eval.py $(head -$SLURM_ARRAY_TASK_ID $ARRAY_FILE | tail -1)
 srun python -u nli/results.py $(head -$SLURM_ARRAY_TASK_ID $ARRAY_FILE | tail -1)

@@ -29,6 +29,7 @@ def parse_option():
     parser = argparse.ArgumentParser(description="Saving results of NLI and SentEval")
 
     parser.add_argument('--model_type', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
+    parser.add_argument('--feature_type', type=str, default = 'baseline', help='Type of features to use', choices=['baseline', 'multiplication', 'exponent'])
     parser.add_argument('--ckpt_path', type=str, default = None, help='Path to save checkpoint')
     parser.add_argument('--version', default= 'version_0', help='Version of the model to load')
 
@@ -142,11 +143,11 @@ class Args:
         self.num_workers = num_workers
 
 class NewSentence:
-    def __init__(self, premise, hypothesis, model_type, path_to_vocab = 'store/vocab.pkl', ckpt_path = None, version = 'version_0'):
+    def __init__(self, premise, hypothesis, model_type, path_to_vocab = 'store/vocab.pkl', ckpt_path = None, version = 'version_0', feature_type = 'baseline'):
         
         ckpt_path = ckpt_path if ckpt_path is not None else model_type
 
-        model, vocab = load_model(model_type, path_to_vocab, ckpt_path, version)
+        model, vocab = load_model(model_type, path_to_vocab, ckpt_path, version, feature_type = feature_type)
         dataset = self.dataset_sent(premise, hypothesis)
         dataloader = self.dataloader(dataset, vocab)
 

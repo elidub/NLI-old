@@ -5,7 +5,7 @@
 #SBATCH --job-name=TrainNLI
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=3
-#SBATCH --time=05:00:00
+#SBATCH --time=01:00:00
 #SBATCH --mem=32000M
 #SBATCH --output=jobs/slurm_output/train_%A.out
 
@@ -22,4 +22,13 @@ source activate nli
 
 # srun python -u nli/train.py --model_type bi_lstm
 
-srun python -u nli/train.py --model_type max_pool_lstm
+# srun python -u nli/train.py --model_type max_pool_lstm
+
+# srun python -u nli/train.py --model_type max_pool_lstm --ckpt_path max_pool_lstm_mult \
+#     --feature_type multiplication --version version_0 --seed 0
+
+srun python -u nli/train.py --model_type avg_word_emb --ckpt_path test \
+    --feature_type multiplication --version version_0_seed_0 --seed 0
+
+srun python -u nli/train.py --model_type avg_word_emb --ckpt_path test \
+    --feature_type multiplication --version version_0_seed_0 --seed 0

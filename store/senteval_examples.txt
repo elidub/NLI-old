@@ -1,0 +1,24 @@
+'MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC', 'MRPC', 'SICKEntailment', 'STS14'
+
+
+{'MR' : [], 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC', 'MRPC', 'SICKEntailment', 'STS14'}	
+
+
+Task MR obvious, horrible, crummy, execrable ., shallow ., eh ., abysmally pathetic, terrible ., wishy-washy ., spiderman rocks, 
+
+Task CR *, good looks, enjoy ., flawless ., - speakerphone, crappy headphones ., 
+
+Task MPQA complaining, warned, threaten, accusing, negatively, biased, claims, 
+
+Task SUBJ skip work to see it at the first opportunity ., automatically pegs itself for the straight-to-video sci-fi rental shelf ., a thoroughly unoriginal , but fast-paced and entertaining genre b-flick, it looks good , but it is essentially empty ., plays less like a coming-of-age romance than an infomercial ., a remarkable 179-minute meditation on the nature of revolution ., martyr gets royally screwed and comes back for more ., desta vez , columbus capturou o pomo de ouro ., an odd , haphazard , and inconsequential romantic comedy ., just as moving , uplifting and funny as ever ., 
+
+Task SST2 disappointments, hopeless, collapse, scant, horrifying, schticky, ransacks, underachiever, devastatingly, undramatic, 
+
+Task TREC Define cosmology ., How was Lawrence, Define Spumante ., Who shoplifts ?, What is BPH ?, What is RCD ?, What is HTML ?, What is AFS ?, What is DEET ?, What is DTMF ?, 
+
+Task MRPC Moore had no immediate comment Tuesday ., An Associated Press report is included ., Every day more American soldiers die ., ISC and NASCAR officials declined to comment ., The Illinois Supreme Court dismissed the case ., Mascia-Frye works in the state development office ., Johnsons site is www.katyjohnson .com. Maxs is www.tuckermax.com., I loved the Brazilian music I played ., America Online last quarter lost 846,000 dial-up subscribers ., Only Intel Corp. has a lower dividend yield ., 
+
+Task SICKEntailmentSomeone is writing, Someone is typing, Some people are walking, Some men are sawing, The fish are immobile, Some men are sawing, A man is laughing, A baby is laughing, A baby is crying, Some kittens are hungry, 
+
+Task STS14 i. atlantic requirements ., i. atlantic requirements ., negative reconnaissance requirements ., specifically a baptist ., more expensive homes ., the infestation posts ., no missile evidence ., bienging is unaccptable ., personal responsibility much ?, fundimental difference , please ?, 
+
