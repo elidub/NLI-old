@@ -1,0 +1,4 @@
+--model_type avg_word_emb --ckpt_path avg_word_emb_mult --feature_type multiplication --transfer_results
+--model_type uni_lstm --ckpt_path uni_lstm_mult --feature_type multiplication --transfer_results
+--model_type bi_lstm --ckpt_path bi_lstm_mult --feature_type multiplication --transfer_results
+--model_type max_pool_lstm --ckpt_path max_pool_lstm_mult --feature_type multiplication --transfer_results

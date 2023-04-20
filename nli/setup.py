@@ -62,6 +62,8 @@ def load_model(model_type, path_to_vocab, ckpt_path, version, feature_type = 'ba
     ckpt_path, _ = find_checkpoint(ckpt_path, version)
     logging.info(f'Loading model from {ckpt_path}')
 
+    print(f'Loading model from {ckpt_path}!')
+
     vocab = setup_vocab(path_to_vocab)
     _, net = setup_model(model_type, vocab, feature_type)
     model = Learner.load_from_checkpoint(ckpt_path, net=net)

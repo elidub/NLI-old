@@ -33,8 +33,8 @@ def parse_option():
     parser.add_argument('--ckpt_path', type=str, default = None, help='Path to save checkpoint')
     parser.add_argument('--version', default= 'version_0', help='Version of the model to load')
 
-    parser.add_argument('--tranfer_results', action='store_true', default = True, help='Get the transfer results')
-    parser.add_argument('--nli_results',     action='store_true', default = True, help='Get the nli results')
+    parser.add_argument('--transfer_results', action='store_false', default = True, help='Get the transfer results')
+    parser.add_argument('--nli_results',     action='store_false', default = True, help='Get the nli results')
 
 
     # parser.add_argument('--path_to_results', type=str, default='store/results.txt', help='Path to results')
@@ -54,7 +54,6 @@ class TransferResults:
         # Read the results
         _, version_path = find_checkpoint(args.ckpt_path, args.version)
         with open(os.path.join(version_path, 'results.txt'), 'r') as f:
-        # with open(os.path.join('results.txt'), 'r') as f:
             results = json.load(f)
         self.results = results
 
@@ -88,7 +87,7 @@ class TransferResults:
 class NLIResults:
     def __init__(self, args):
 
-        self.model, vocab = load_model(args.model_type, args.path_to_vocab, args.ckpt_path, args.version)
+        self.model, vocab = load_model(args.model_type, args.path_to_vocab, args.ckpt_path, args.version, args.feature_type)
         self.datamodule = NLIDataModule(vocab=vocab, batch_size=64, num_workers=args.num_workers)
         self.trainer = pl.Trainer(
             logger = False,
@@ -135,12 +134,13 @@ class NLIResults:
 
 
 class Args:
-    def __init__(self, model_type, path_to_vocab, ckpt_path, version, num_workers = 0):
+    def __init__(self, model_type, path_to_vocab, ckpt_path, version, num_workers = 0, feature_type = 'baseline'):
         self.model_type = model_type
         self.path_to_vocab = path_to_vocab
         self.ckpt_path = ckpt_path
         self.version = version
         self.num_workers = num_workers
+        self.feature_type = feature_type
 
 class NewSentence:
     def __init__(self, premise, hypothesis, model_type, path_to_vocab = 'store/vocab.pkl', ckpt_path = None, version = 'version_0', feature_type = 'baseline'):
@@ -183,7 +183,7 @@ def main(args):
     if not os.path.exists(version_store_path):
         os.makedirs(version_store_path)
     
-    if args.tranfer_results:
+    if args.transfer_results:
         transfer_results = TransferResults(args, {'MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC', 'MRPC', 'SICKEntailment'})
         transfer_accs = transfer_results.get_transfer_accs()
     else: 

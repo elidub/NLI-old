@@ -130,7 +130,7 @@ class Features(nn.Module):
             batch_size = u.shape[0]
             assert n_features == len(self.multiplier)
             features = torch.stack(features)
-            if self.feature_type == 'multiplPication':
+            if self.feature_type == 'multiplication':
                 features = features * self.multiplier.unsqueeze(1).unsqueeze(1)
             elif self.feature_type == 'exponent':
                 features = features ** self.multiplier.unsqueeze(1).unsqueeze(1)

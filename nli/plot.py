@@ -18,6 +18,13 @@ import pandas as pd
 from setup import find_checkpoint
 from results import NewSentence
 
+import numpy as np
+
+from tensorboard.backend.event_processing import event_file_loader
+from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+
+from tqdm import tqdm
+
 
 class PlotResults:
     
@@ -82,9 +89,9 @@ class PlotResults:
         fig.show()
 
     
-    def plot_new_sample(self, premise, hypothesis, model_type):
+    def plot_new_sample(self, premise, hypothesis, model_type, feature_type = 'baseline'):
 
-        pred = NewSentence(premise, hypothesis, model_type).pred
+        pred = NewSentence(premise, hypothesis, model_type, feature_type = feature_type).pred
 
 
         x = np.arange(3)
@@ -284,3 +291,125 @@ class PlotResults:
         fig = self.plot_violin().plot()
         fig.savefig('figs/violin.png', dpi = 300)
         
+
+class PlotResultsMult:
+    def __init__(self, models, features_types, versions,):
+
+
+        models_all = {'avg_word_emb': 'AvgWordEmb', 'uni_lstm': 'UniLSTM', 'bi_lstm': 'BiLSTM-last', 'max_pool_lstm': 'BiLSTM-Max'}
+        self.models = {k: v for k, v in models_all.items() if k in models}
+
+        self.features_types = features_types
+
+        assert len(set(versions)) == 1, '#TODO: fix self.version to be compatible with different versions for different models'
+        self.version = versions[0]
+
+        return
+
+        assert len(models) == len(ckpt_paths) == len(versions) == len(dims), 'models and versions must be of the same length'
+
+        models_all = {'avg_word_emb': 'AvgWordEmb', 'uni_lstm': 'UniLSTM', 'bi_lstm': 'BiLSTM-last', 'max_pool_lstm': 'BiLSTM-Max'}
+        self.models = {k: v for k, v in models_all.items() if k in models}
+
+        ckpt_paths_all = {'avg_word_emb': 'AvgWordEmb', 'uni_lstm': 'UniLSTM', 'bi_lstm': 'BiLSTM-last', 'max_pool_lstm': 'BiLSTM-Max',
+                          'avg_word_emb_mult': 'AvgWordEmb (Mult)', 'uni_lstm_mult': 'UniLSTM (Mult)', 'bi_lstm_mult': 'BiLSTM-last (Mult)', 'max_pool_lstm_mult': 'BiLSTM-Max (Mult)'}
+        self.ckpt_paths = {k: v for k, v in ckpt_paths_all.items() if k in ckpt_paths}
+
+        assert len(set(versions)) == 1, '#TODO: fix self.version to be compatible with different versions for different models'
+        self.version = versions[0]
+
+        self.dims = dims
+
+        self.colors = {'Entailment' : 'tab:green', 'Neutral' : 'tab:blue', 'Contradiction' : 'tab:red'}
+
+    def print_results(self):
+
+
+        
+        
+        
+        features_types = {'baseline': '', 'multiplication': '_mult'}
+
+        version = 'version_0'
+
+        acc_dict = {}
+
+
+        for model in self.models:
+            for features_type in self.features_types:
+                _, version_path = find_checkpoint(model + features_types[features_type], version)
+
+                # read file from  os.path.join(version_path, 'store/accs.txt' with json
+                with open(os.path.join(version_path, 'store/accs.txt'), 'r') as f:
+                    accs = json.load(f)
+                    accs = {k+features_types[features_type]: v for k, v in accs.items()}
+
+                # check if model is in acc_dict
+                if model not in acc_dict:
+                    acc_dict[model] = accs
+                else:
+                    acc_dict[model].update(accs)
+
+        dtypes = {'val': float, 'test': float, 'val_mult': float, 'test_mult': float,}
+        alt_titles = {'val': 'dev', 'test': 'test', 'val_mult': 'dev (mult)', 'test_mult': 'test (mult)', }
+        models_all =  {'avg_word_emb': 'Avg WordEmb', 'uni_lstm': 'Uni-LSTM', 'bi_lstm': 'Bi-LSTM', 'max_pool_lstm': 'BiLSTM-Max'}
+        custom_order = ['val', 'val_mult', 'test', 'test_mult']
+
+        df = pd.DataFrame(acc_dict).T.astype(dtypes).loc[:, custom_order].rename(columns=alt_titles, index = self.models)
+        return df
+
+    def plot_multipliers(self, calculate = False):
+        mults_dict = {}
+
+        for model in self.models:
+            model_feature = model + '_mult'
+            _, version_path = find_checkpoint(model_feature, self.version)
+
+            if calculate:
+
+                event_acc = EventAccumulator(version_path, size_guidance={"scalars": 0})
+                event_acc.Reload()
+
+                scalar_tags = event_acc.Tags()["scalars"]
+
+                mults = []
+                for i in tqdm(range(4)):
+                    scalar_events = event_acc.Scalars(f'multiplier_{i}')
+                    mult = [s.value for s in scalar_events]
+                    mults.append(mult)
+                mults = np.array(mults)
+
+                # save mults at version_path
+                np.save(os.path.join(version_path, 'store/mults.npy'), mults)
+
+            else:
+                # load mults at version_path
+                mults = np.load(os.path.join(version_path, 'store/mults.npy'))
+            
+            mults_dict[model_feature] = mults
+
+
+        mult_labels = ['$u$', '$v$', '$u \cdot v$', '$\mid u - v \mid$']
+
+        size = 3
+        n_models = len(mults_dict)
+        fig, axs = plt.subplots(1, n_models, figsize=(n_models*size, size), sharey=True)
+
+        for mult, model, ax in zip(mults_dict.values(), list(self.models.values()), axs):
+
+            ax.set_title(model)
+
+            for i, mult_label in enumerate(mult_labels):
+                ax.plot(mult[i], label=mult_label)
+
+            # plot a horizontal line at 1
+            ax.plot(mult[0] / mult[1], label='$u/v$ (calc.)', linestyle='--', zorder  = 0)
+            ax.axhline(1, color='black', linestyle='--', linewidth=0.5)
+
+        axs[0].legend(loc = 'upper left')
+
+        fig.supxlabel('Iterations')
+        fig.supylabel('Multiplier value')
+        fig.tight_layout()
+
+        plt.show()

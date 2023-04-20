@@ -3,6 +3,9 @@ data/snli/
 SentEval/
 nli/__pycache__/
 logs/*/*/checkpoints/
-jobs/slurm_output/
+logs/*/*/events.out.tfevents.*
 build/
 dist/
+logs/
+trash/
+jobs/slurm_output/

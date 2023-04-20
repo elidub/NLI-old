@@ -72,20 +72,6 @@ def batcher(params, batch):
     
     """
 
-    batch = batch[:10]
-    batch = [sent for sent in batch if sent != [] ]
-    sents = [' '.join(sent) for sent in batch]
-
-    # open a file and append the sentences
-    with open('sents.txt', 'a') as f:
-        f.write('| X | ')
-        for sent in sents:
-            f.write(sent)
-            f.write(' ; ') if sent is not sents[-1] else f.write(' |')
-        f.write('\n\n')
-    assert False
-
-
     # Since the words are already tokenized, we only apply lowercasing
     # to have the same preprocessing steps as we did for the SNLI data
     batch = [[word.lower() for word in sent] if sent != [] else ['.'] for sent in batch]
@@ -126,14 +112,6 @@ def main(args):
     
     transfer_tasks = ['MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC',
                       'MRPC', 'SICKEntailment', 'STS14']
-
-    for transfer_task in transfer_tasks:
-        try:
-            se.eval([transfer_task])
-        except:
-            continue
-    assert False
-
 
     results = se.eval(transfer_tasks)
     print(results)
