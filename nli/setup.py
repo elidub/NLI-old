@@ -1,8 +1,10 @@
 import pickle
-from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet
+from models import AvgWordEmb, UniLSTM, BiLSTM, MaxPoolLSTM, MLP, NLINet, Features
 from learner import Learner
 import os
 import logging
+import torch
+import numpy as np
 
 from data import DataSetPadding
 
@@ -19,7 +21,7 @@ def setup_vocab(path_to_vocab = 'store/vocab.pkl'):
     vocab = CustomUnpickler(open(path_to_vocab, 'rb')).load()
     return vocab
 
-def setup_model(model_type, vocab, hidden_dim = 2048):
+def setup_model(model_type, vocab, feature_type = 'baseline', hidden_dim = 2048):
 
     if model_type == 'avg_word_emb':
         encoder = AvgWordEmb()
@@ -35,13 +37,15 @@ def setup_model(model_type, vocab, hidden_dim = 2048):
         classifier = MLP(hidden_dim*4*2)
     else:
         raise ValueError('Unknown model type')
+    
+    print(f'Choosing {feature_type} features!')
+    features = Features(feature_type)
 
-    net = NLINet(encoder, classifier, vocab)
+    
+    net = NLINet(encoder, classifier, features, vocab)
     model = Learner(net)
 
     return model, net
-
-
 
 def find_checkpoint(ckpt_path, version):
     versions = os.listdir(os.path.join('logs', ckpt_path))
@@ -53,13 +57,13 @@ def find_checkpoint(ckpt_path, version):
     ckpt_path = os.path.join('logs', ckpt_path, version, 'checkpoints', ckpts[0])
     return ckpt_path, version_path
 
-def load_model(model_type, path_to_vocab, ckpt_path, version):
+def load_model(model_type, path_to_vocab, ckpt_path, version, feature_type = 'baseline'):
 
     ckpt_path, _ = find_checkpoint(ckpt_path, version)
     logging.info(f'Loading model from {ckpt_path}')
 
     vocab = setup_vocab(path_to_vocab)
-    _, net = setup_model(model_type, vocab)
+    _, net = setup_model(model_type, vocab, feature_type)
     model = Learner.load_from_checkpoint(ckpt_path, net=net)
     model.eval()
 
@@ -67,3 +71,15 @@ def load_model(model_type, path_to_vocab, ckpt_path, version):
 
 def prep_sent(sent, vocab):
     return DataSetPadding(None, vocab).prepare_sent(sent)
+
+def set_seed(seed):
+    """
+    Function for setting the seed for reproducibility.
+    """
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False

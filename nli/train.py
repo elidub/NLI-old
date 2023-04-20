@@ -16,7 +16,8 @@ from setup import setup_vocab, setup_model
 def parse_option():
     parser = argparse.ArgumentParser(description="Training NLI models")
 
-    parser.add_argument('--model_type', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
+    parser.add_argument('--model_type', type=str, default='uni_lstm', help='Model type', choices=['avg_word_emb', 'avg_word_emb2', 'uni_lstm', 'bi_lstm', 'max_pool_lstm'])
+    parser.add_argument('--feature_type', type=str, default = 'baseline', help='Type of features to use', choices=['baseline', 'multiplication', 'exponent'])
     
     parser.add_argument('--ckpt_path', type=str, default = None, help='Path to save checkpoint')
     parser.add_argument('--version', default=None, help='Version of the model to load')
@@ -25,6 +26,8 @@ def parse_option():
 
     parser.add_argument('--epochs', type=int, default=20, help='Max number of training epochs')
     parser.add_argument('--num_workers', type=int, default=3, help='Number of workers for dataloader')
+
+    parser.add_argument('--seed', type=int, default=42, help='Random seed')
 
     # parser.add_argument('--batch_size', type=int, default=64, help='batch size')
     # parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
@@ -44,48 +47,13 @@ def parse_option():
 
     return args
 
-
-# class CustomUnpickler(pickle.Unpickler):
-
-#     def find_class(self, module, name):
-#         if name == 'Vocabulary':
-#             from data import Vocabulary
-#             return Vocabulary
-#         return super().find_class(module, name)
-
-# def setup_vocab(path_to_vocab = 'store/vocab.pkl'):
-#     # vocab = pickle.load(open(path_to_vocab, 'rb'))
-#     vocab = CustomUnpickler(open(path_to_vocab, 'rb')).load()
-#     return vocab
-
-# def setup_model(model_type, vocab, hidden_dim = 2048):
-
-#     if model_type == 'avg_word_emb':
-#         encoder = AvgWordEmb()
-#         classifier = MLP(300*4)
-#     elif model_type == 'uni_lstm':
-#         encoder = UniLSTM(hidden_dim)
-#         classifier = MLP(hidden_dim*4)
-#     elif model_type == 'bi_lstm':
-#         encoder = BiLSTM(hidden_dim)
-#         classifier = MLP(hidden_dim*4*2)
-#     elif model_type == 'max_pool_lstm':
-#         encoder = MaxPoolLSTM(hidden_dim)
-#         classifier = MLP(hidden_dim*4*2)
-#     else:
-#         raise ValueError('Unknown model type')
-
-#     net = NLINet(encoder, classifier, vocab)
-#     model = Learner(net)
-
-#     return model, net
-
 def main(args):
 
     ckpt_path = args.ckpt_path if args.ckpt_path is not None else args.model_type
+    pl.seed_everything(args.seed, workers=True)
 
     vocab    = setup_vocab(args.path_to_vocab)
-    model, _ = setup_model(args.model_type, vocab)
+    model, _ = setup_model(args.model_type, vocab, args.feature_type)
     datamodule = NLIDataModule(vocab=vocab, batch_size=64, num_workers=args.num_workers)
 
     trainer = pl.Trainer(
@@ -94,6 +62,7 @@ def main(args):
         log_every_n_steps = 1, 
         accelerator = 'gpu' if torch.cuda.is_available() else 'cpu',
         callbacks = [pl.callbacks.ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc")],
+        deterministic = True,
     )
     trainer.fit(model,  datamodule=datamodule)
     trainer.test(model, datamodule=datamodule)

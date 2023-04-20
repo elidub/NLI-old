@@ -89,10 +89,14 @@ def batcher(params, batch):
     or a complete batch (you may need masking for that).
     
     """
-    batch = [sent if sent != [] else ['.'] for sent in batch]
+
+    # Since the words are already tokenized, we only apply lowercasing
+    # to have the same preprocessing steps as we did for the SNLI data
+    batch = [[word.lower() for word in sent] if sent != [] else ['.'] for sent in batch]
 
     sent_ids, slens = zip(*[params.prep_sent(sent) for sent in batch])
     sent_ids = torch.stack(sent_ids)
+
     slens    = torch.tensor(slens)
 
     embeddings = params.model.net.encode(sent_ids, slens)
@@ -126,7 +130,7 @@ def main(args):
     
     transfer_tasks = ['MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC',
                       'MRPC', 'SICKEntailment', 'STS14']
-    
+
     results = se.eval(transfer_tasks)
     print(results)
 

@@ -74,12 +74,13 @@ class PlotResults:
 
         fig.supylabel('Prediction probability')
         fig.supxlabel('Predicted class', y = -0.05)
-        fig.suptitle('Premise; Hypothesis', style = 'italic', y = 0.95)
+        fig.suptitle('Premise; Hypothesis', style = 'italic', y = 1)
 
 
         plt.tight_layout()
 
-        return fig
+        fig.show()
+
     
     def plot_new_sample(self, premise, hypothesis, model_type):
 
@@ -121,11 +122,35 @@ class PlotResults:
 
         plt.tight_layout()
 
-        return fig
+        fig.show()
 
 
 
+    def plot_embeddings(self):
+        size = 2.5
+
+        n_models = len(self.models)
+        labels = list(self.colors.keys())
+
+        c = 'tab:blue'
+
+        fig, axs = plt.subplots(1, n_models, figsize=(n_models*size, size))
+
+        for ax, model in zip(axs, self.models.keys()):
+            _, version_path = find_checkpoint(model, self.version)
+            emb =  torch.load(os.path.join(version_path, 'store/test_emb.pt'))
         
+            mean, std = torch.mean(emb, dim=0), torch.std(emb, dim=0)
+
+            ax.plot(mean, color = c)
+            ax.fill_between(range(emb.shape[1]), mean - std, mean + std, alpha=0.3, color=c)
+            ax.set_title(self.models[model], size = 12)
+
+        fig.supxlabel('Word embedding')
+
+        plt.tight_layout()
+
+        fig.show()
 
 
 
@@ -172,12 +197,59 @@ class PlotResults:
 
         fig.supylabel('Prediction probability')
         fig.supxlabel('Predicted class', y = -0.05)
-        fig.suptitle('True class', fontweight = 'bold', y = 0.95)
+        fig.suptitle('True class', fontweight = 'bold', y =1)
 
 
         plt.tight_layout()
 
-        return fig
+        fig.show()
+
+    def plot_bars(self):
+        size = 2.5
+
+        n_class = 3
+        n_models = len(self.models)
+        labels = list(self.colors.keys())
+
+        fig, axs = plt.subplots(n_models, n_class, figsize=(n_class*size, n_models*size), sharey=True, sharex=True)
+
+        x = np.arange(n_class)
+        for row_i, model in enumerate(self.models.keys()):
+            _, version_path = find_checkpoint(model, self.version)
+            preds =  torch.load(os.path.join(version_path, 'store/test_preds.pt'))
+            trues =  torch.load(os.path.join(version_path, 'store/test_trues.pt'))
+
+            # device preds into a dictionary based upon the value of true
+            pred_dict = {true.item() : torch.tensor([]) for true in trues.unique()}
+            for pred, true in zip(preds, trues):
+                pred_dict[true.item()] = torch.cat((pred_dict[true.item()], pred.unsqueeze(0)), dim = 0)
+
+            for col_i, ((label, pred), ax) in enumerate(zip(pred_dict.items(), axs[row_i])):
+
+                bins = np.arange(-0.5, 3.5, 1.)
+                heigths, _ = np.histogram(torch.argmax(pred, dim = 1).numpy() , bins = bins, density = True)
+                ax.bar(np.arange(3), heigths, color = self.colors.values()) 
+
+                ax.set_xticks([])
+                ax.set_yticks([0, 0.5, 1])
+                ax.set_ylim(0, 1)
+
+                if col_i == 0:
+                    ax.set_ylabel(self.models[model], size = 12)
+                if row_i == 0:
+                    ax.set_title(labels[col_i], size = 12, color = self.colors[labels[col_i]], fontweight = 'bold')
+
+        handles = [plt.Rectangle((0,0),1,1, color=self.colors[label]) for label in labels]
+        fig.legend(handles, labels, loc='lower center', prop={'size': 12}, ncol=3, bbox_to_anchor=(0.5, -0.02))
+
+        fig.supylabel('Total predictions (%)')
+        fig.supxlabel('Predicted class', y = -0.05)
+        fig.suptitle('True class', fontweight = 'bold', y = 1)
+
+
+        plt.tight_layout()
+
+        fig.show()
     
 
 

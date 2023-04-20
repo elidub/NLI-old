@@ -107,9 +107,9 @@ class NLIResults:
     
     def get_example_preds(self, dataloaders = None):
         if dataloaders is None:
-            y_hat, y = self.trainer.predict(self.model, datamodule=self.datamodule)[0]
+            y_hat, _, y = self.trainer.predict(self.model, datamodule=self.datamodule)[0]
         else:
-            y_hat, y = self.trainer.predict(self.model, dataloaders=dataloaders)[0]
+            y_hat, _, y = self.trainer.predict(self.model, dataloaders=dataloaders)[0]
         y_pred = torch.nn.functional.softmax(y_hat, dim=1)
         return y_pred, y
     
@@ -119,10 +119,16 @@ class NLIResults:
 
         # concatenate all the predictions and labels
         y_hat = torch.cat([pred[0] for pred in preds], dim=0)
-        y     = torch.cat([pred[1] for pred in preds], dim=0)
+        emb_u = torch.cat([pred[1][0] for pred in preds], dim=0)
+        emb_v = torch.cat([pred[1][1] for pred in preds], dim=0)
+        y     = torch.cat([pred[2] for pred in preds], dim=0)
+
+        # shape emb_u = emb_v = (9824, 300)
+        # concatenate the two embeddings such that we ahve an embedding of shape (9824*2, 300)
+        emb = torch.cat([emb_u, emb_v], dim=0)
         
         y_pred = torch.nn.functional.softmax(y_hat, dim=1)
-        return y_pred, y
+        return y_pred, y, emb
 
 
 
@@ -190,9 +196,10 @@ def main(args):
         example_preds, _ = nli_results.get_example_preds()
         torch.save(example_preds, os.path.join(version_store_path, 'example_preds.pt'))
 
-        test_preds, test_trues = nli_results.get_test_preds()
+        test_preds, test_trues, test_emb = nli_results.get_test_preds()
         torch.save(test_preds, os.path.join(version_store_path, 'test_preds.pt'))
         torch.save(test_trues, os.path.join(version_store_path, 'test_trues.pt'))
+        torch.save(test_emb,   os.path.join(version_store_path, 'test_emb.pt'))
 
         logging.info(f'Pred: {example_preds}')
     else:

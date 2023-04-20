@@ -18,14 +18,24 @@ class Learner(pl.LightningModule):
     
     def forward(self, batch):
         x, y = batch
-        y_hat = self.net(x)
-        return y_hat, y
+        y_hat, (u, v) = self.net(x)
+        return y_hat, (u, v), y
+    
+    def log_multiplier(self):
+        # check if the model has a multiplier
+        if not hasattr(self.net.features, 'multiplier'):
+            return
+
+        multipliers = self.net.features.multiplier
+
+        for i, m in enumerate(multipliers):
+            self.log(f'multiplier_{i}', m, prog_bar=False)
 
     def step(self, batch, mode='train'):
         x, y = batch
 
         # Forward
-        y_hat = self.net(x)
+        y_hat, _ = self.net(x)
 
         # Loss
         loss = self.loss_fn(y_hat, y)
@@ -37,6 +47,7 @@ class Learner(pl.LightningModule):
         # Log
         self.log(f"{mode}_loss", loss, prog_bar=True)
         self.log(f"{mode}_acc",  acc,  prog_bar=True)
+        self.log_multiplier()
 
         return loss, y_hat
 

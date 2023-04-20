@@ -110,11 +110,45 @@ class MLP(nn.Module):
     def forward(self, x):
         return self.mlp(x)
     
+class Features(nn.Module):
+    def __init__(self, feature_type):
+        super().__init__()
+        self.feature_type = feature_type
+
+        if not self.feature_type == 'baseline':
+            self.multiplier = nn.Parameter(torch.ones(4))
+
+    def forward(self, u, v):
+
+        features = [u, v, torch.abs(u - v), u * v]
+        n_features = len(features)
+
+        if self.feature_type == 'baseline':
+            features = torch.cat(features, dim=1)
+
+        elif self.feature_type == 'multiplication' or self.feature_type == 'exponent':
+            batch_size = u.shape[0]
+            assert n_features == len(self.multiplier)
+            features = torch.stack(features)
+            if self.feature_type == 'multiplication':
+                features = features * self.multiplier.unsqueeze(1).unsqueeze(1)
+            elif self.feature_type == 'exponent':
+                features = features ** self.multiplier.unsqueeze(1).unsqueeze(1)
+            else:
+                raise NotImplementedError
+            features = features.permute(1, 0, 2).reshape(batch_size, -1)
+
+        else:
+            raise NotImplementedError
+
+        return features
+
 
 class NLINet(nn.Module):
-    def __init__(self, encoder, classifier, vocab):
+    def __init__(self, encoder, classifier, features, vocab):
         super().__init__()
         self.encoder = encoder
+        self.features = features
         self.classifier = classifier
 
         self.vocab = vocab
@@ -122,16 +156,12 @@ class NLINet(nn.Module):
         wordvec = torch.stack(list(vocab.wordvec.values()))
         vocab_size, embed_size = wordvec.shape
 
-
         self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=1)
 
         with torch.no_grad():
             self.embedding.weight.copy_(torch.stack(list(vocab.wordvec.values())))
             self.embedding.weight.requires_grad = False
 
-    def concat_sentreps(self, sentrep1, sentrep2):
-        return torch.cat([sentrep1, sentrep2, torch.abs(sentrep1 - sentrep2), sentrep1 * sentrep2], dim=1)
-    
     def encode(self, sent_id, slen):
         wordvec = self.embedding(sent_id)
         sentrep = self.encoder(wordvec, slen)
@@ -141,10 +171,10 @@ class NLINet(nn.Module):
         sid1, sid2, len1, len2 = x
 
         u, v = self.encode(sid1, len1), self.encode(sid2, len2) # (batch_size, embedding_size)
-        features = self.concat_sentreps(u, v) # (batch_size, 4 * embedding_size)
+        features = self.features(u, v) # (batch_size, 4 * embedding_size)
         y_hat = self.classifier(features) # (batch_size, 3)
 
-        return y_hat
+        return y_hat, (u, v)
     
 
 
