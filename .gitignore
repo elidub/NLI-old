@@ -3,7 +3,6 @@ data/snli/
 SentEval/
 nli/__pycache__/
 logs/*/*/checkpoints/
-logs/*/*/events.out.tfevents.*
 build/
 dist/
 logs/
